@@ -32,6 +32,59 @@ la-cave-annecy/
 
 ---
 
+## 📅 Configurer l'Agenda (Google Sheets)
+
+La section Agenda affiche automatiquement les événements depuis votre Google Sheets.
+
+### Étape 1 : Préparer le Google Sheets
+
+Votre Google Sheets doit avoir un onglet nommé **"agenda"** avec les colonnes suivantes :
+
+| Colonne A | Colonne B | Colonne C | Colonne D | Colonne E |
+|-----------|-----------|-----------|-----------|-----------|
+| Date | Nom de l'événement | Heure début | Heure fin | Détails |
+| 25/01/2025 | Dégustation Bourgogne | 19h00 | 22h00 | Avec le vigneron X |
+| 01/02/2025 | Soirée Fromages | 18h30 | 21h00 | Accords vins & fromages |
+
+### Étape 2 : Publier le Google Sheets
+
+1. Ouvrez votre Google Sheets
+2. Allez dans **Fichier → Partager → Publier sur le web**
+3. Sélectionnez l'onglet **"agenda"**
+4. Format : **Page Web**
+5. Cliquez sur **Publier**
+6. Assurez-vous aussi que le fichier est **partagé en lecture** pour "Toute personne disposant du lien"
+
+### Étape 3 : Configurer dans config.js
+
+```javascript
+agenda: {
+    // ID du Google Sheets (trouvable dans l'URL entre /d/ et /edit)
+    googleSheetsId: "VOTRE_ID_ICI",
+    
+    // Nom de l'onglet
+    sheetName: "agenda",
+    
+    // Nombre maximum d'événements affichés
+    maxEvents: 6,
+    
+    // Afficher uniquement les événements futurs
+    futureOnly: true
+}
+```
+
+**Pour trouver l'ID du Google Sheets :**
+Dans l'URL `https://docs.google.com/spreadsheets/d/1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4/edit`
+L'ID est : `1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4`
+
+### Formats de date acceptés
+
+- `25/01/2025` (recommandé - format français)
+- `2025-01-25` (format ISO)
+- Date native Google Sheets
+
+---
+
 ## 🖼️ Changer les images
 
 ### Tailles recommandées
@@ -105,49 +158,20 @@ horaires: {
 
 ---
 
-## 👥 Modifier l'équipe
+## 📅 Modifier les textes de l'Agenda
 
-Dans `config.js`, section `equipe` (ligne ~115) :
+Dans `config.js`, section `accueil.agenda` :
 
 ```javascript
-equipe: [
-    {
-        nom: "Mathias",
-        role: "Gérant",
-        icone: "person"    // Options: "person", "wine", "chef", "bartender"
-    },
-    {
-        nom: "Valentin",
-        role: "Sommelier",
-        icone: "wine"
-    },
-    // Ajouter d'autres membres en copiant ce format...
-]
+agenda: {
+    badge: "À venir",
+    titre: "Agenda",
+    description: "Découvrez nos prochains événements...",
+    messageVide: "Aucun événement prévu pour le moment.",
+    messageErreur: "Impossible de charger les événements.",
+    messageChargement: "Chargement des événements..."
+}
 ```
-
-### Icônes disponibles
-
-| Valeur | Description |
-|--------|-------------|
-| `person` | Icône personne générique |
-| `wine` | Verre de vin (sommelier) |
-| `chef` | Toque de chef |
-| `bartender` | Shaker (barman) |
-
-### Ajouter un membre
-
-Copiez ce bloc à la fin de la liste :
-```javascript
-{
-    nom: "Nouveau Nom",
-    role: "Son poste",
-    icone: "person"
-},
-```
-
-### Supprimer un membre
-
-Supprimez simplement son bloc (avec les accolades et la virgule).
 
 ---
 
@@ -191,22 +215,6 @@ Ajoutez cette ligne dans la catégorie souhaitée :
 ```javascript
 { nom: "Nom du vin", domaine: "Nom du domaine", prix: "XX €" },
 ```
-
-### Ajouter une catégorie
-
-```javascript
-{
-    nom: "Nouvelle catégorie",
-    vins: [
-        { nom: "Vin 1", domaine: "Domaine 1", prix: "XX €" },
-        { nom: "Vin 2", domaine: "Domaine 2", prix: "XX €" }
-    ]
-},
-```
-
-### Ajouter une région
-
-Copiez et modifiez un bloc région entier (avec toutes ses catégories).
 
 ---
 
@@ -257,6 +265,7 @@ Les couleurs sont dans `styles.css` (lignes 10-25) :
 - [ ] Les chemins dans `config.js` commencent par `./images/`
 - [ ] Pas de caractères spéciaux dans les noms de fichiers
 - [ ] Images optimisées (< 500 Ko chacune idéalement)
+- [ ] Google Sheets publié et partagé en lecture
 
 ---
 
@@ -267,6 +276,14 @@ Les couleurs sont dans `styles.css` (lignes 10-25) :
 1. Vérifiez que le fichier existe dans `images/`
 2. Vérifiez l'orthographe exacte (majuscules/minuscules)
 3. Vérifiez que le chemin commence par `./images/`
+
+### L'agenda ne charge pas les événements
+
+1. Vérifiez que le Google Sheets est **publié sur le web**
+2. Vérifiez que le fichier est **partagé en lecture**
+3. Vérifiez que l'ID dans `config.js` est correct
+4. Vérifiez que l'onglet s'appelle bien "agenda"
+5. Vérifiez que les dates sont au bon format
 
 ### Le site ne se met pas à jour
 
