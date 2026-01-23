@@ -1647,3 +1647,14 @@ button {
         font-size: var(--size-xs);
     }
 }
+
+/* ========================================
+   MENU PAGE STYLES
+======================================== */
+.page-menu {
+    background: var(--color-cream);
+}
+
+.header--carte .nav__link--menu.nav__link--active {
+    color: var(--color-accent);
+}
