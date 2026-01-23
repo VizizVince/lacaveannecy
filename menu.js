@@ -1,12 +1,18 @@
 /**
- * Menu JavaScript - La Cave Annecy
- * Charge et affiche le menu depuis Google Sheets
+ * ═══════════════════════════════════════════════════════════════════════════
+ * PAGE MENU - LA CAVE ANNECY
+ * ═══════════════════════════════════════════════════════════════════════════
+ * 
+ * Chargement dynamique depuis Google Sheets
+ * ═══════════════════════════════════════════════════════════════════════════
  */
 
-// Configuration
+/**
+ * Configuration
+ */
 const MENU_CONFIG = {
     cacheKey: 'cave_annecy_menu',
-    cacheDuration: 60 * 60 * 1000, // 1 heure en ms
+    cacheDuration: 60 * 60 * 1000,
     categories: {
         'Finger Food': { emoji: '🥢', horaires: '18h30 - 23h' },
         'Assiettes du Marché': { emoji: '🍳', horaires: '18h30 - 22h30' },
@@ -14,30 +20,116 @@ const MENU_CONFIG = {
     }
 };
 
-// État global
+/**
+ * État global
+ */
 let menuData = [];
 let currentFilter = 'all';
+
+/**
+ * Applique la configuration de base (logo, contact, footer)
+ */
+function applyBaseConfig() {
+    if (typeof CONFIG === 'undefined') {
+        console.error('Configuration non trouvée. Vérifiez que config.js est chargé.');
+        return;
+    }
+
+    // Images
+    setElement('header-logo', 'src', CONFIG.images.logo);
+    setElement('footer-logo', 'src', CONFIG.images.logo);
+
+    // Textes de la page
+    if (CONFIG.menu && CONFIG.menu.page) {
+        setElement('menu-badge', 'textContent', CONFIG.menu.page.sousTitre || 'Petite restauration');
+        setElement('menu-titre', 'textContent', CONFIG.menu.page.titre || 'Notre Menu');
+        setElement('menu-description', 'textContent', CONFIG.menu.page.note || 'Service de 18h30 à 23h • Prix TTC, service compris');
+    }
+
+    // Contact (liens sociaux)
+    if (CONFIG.contact) {
+        setElement('social-phone', 'href', CONFIG.contact.telephoneLien);
+        setElement('footer-phone', 'href', CONFIG.contact.telephoneLien);
+        
+        if (CONFIG.contact.instagram) {
+            setElement('social-instagram', 'href', CONFIG.contact.instagram.url);
+            setElement('footer-instagram', 'href', CONFIG.contact.instagram.url);
+        }
+    }
+
+    // Footer
+    setElement('footer-tagline', 'textContent', `Bar à vins historique d'${CONFIG.contact?.adresse?.ville || 'Annecy'}`);
+    
+    if (CONFIG.legal) {
+        setElement('footer-copyright', 'textContent', `© ${CONFIG.site.annee} ${CONFIG.site.nom}. ${CONFIG.legal.copyright}`);
+        setElement('footer-legal', 'textContent', CONFIG.legal.avertissement);
+    }
+}
+
+/**
+ * Utilitaire pour définir un élément
+ */
+function setElement(id, property, value) {
+    const el = document.getElementById(id);
+    if (el && value !== undefined && value !== null) {
+        if (property === 'textContent' || property === 'innerHTML') {
+            el[property] = value;
+        } else {
+            el.setAttribute(property, value);
+        }
+    }
+}
 
 /**
  * Initialisation au chargement de la page
  */
 document.addEventListener('DOMContentLoaded', () => {
-    initNavToggle();
+    applyBaseConfig();
+    initHeader();
     initFilterButtons();
     loadMenu();
 });
 
 /**
- * Toggle navigation mobile
+ * Initialise le header (scroll, burger menu)
  */
-function initNavToggle() {
-    const navToggle = document.querySelector('.nav-toggle');
-    const navList = document.querySelector('.nav-list');
+function initHeader() {
+    const header = document.getElementById('header');
+    const filterNav = document.getElementById('filterNav');
+    const burger = document.getElementById('burger');
+    const nav = document.getElementById('nav');
     
-    if (navToggle && navList) {
-        navToggle.addEventListener('click', () => {
-            navToggle.classList.toggle('active');
-            navList.classList.toggle('active');
+    // Scroll effect
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 50) {
+            header.classList.add('header--scrolled');
+        } else {
+            header.classList.remove('header--scrolled');
+        }
+        
+        if (filterNav && window.pageYOffset > 200) {
+            filterNav.classList.add('filter-nav--sticky');
+        } else if (filterNav) {
+            filterNav.classList.remove('filter-nav--sticky');
+        }
+    });
+    
+    // Mobile menu
+    if (burger && nav) {
+        burger.addEventListener('click', function() {
+            const isOpen = burger.classList.toggle('header__burger--active');
+            burger.setAttribute('aria-expanded', isOpen);
+            nav.classList.toggle('nav--open');
+            document.body.classList.toggle('menu-open');
+        });
+        
+        document.querySelectorAll('.nav__link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                burger.classList.remove('header__burger--active');
+                burger.setAttribute('aria-expanded', 'false');
+                nav.classList.remove('nav--open');
+                document.body.classList.remove('menu-open');
+            });
         });
     }
 }
@@ -46,15 +138,13 @@ function initNavToggle() {
  * Initialise les boutons de filtre
  */
 function initFilterButtons() {
-    const filterBtns = document.querySelectorAll('.filter-btn');
+    const filterBtns = document.querySelectorAll('.filter-tab');
     
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Update active state
-            filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            filterBtns.forEach(b => b.classList.remove('filter-tab--active'));
+            btn.classList.add('filter-tab--active');
             
-            // Apply filter
             currentFilter = btn.dataset.category;
             renderMenu();
         });
@@ -65,14 +155,16 @@ function initFilterButtons() {
  * Charge le menu depuis Google Sheets ou le cache
  */
 async function loadMenu() {
-    const loading = document.getElementById('menu-loading');
-    const error = document.getElementById('menu-error');
-    const content = document.getElementById('menu-content');
+    const container = document.getElementById('menu-container');
     
-    // Reset states
-    loading.style.display = 'flex';
-    error.style.display = 'none';
-    content.style.display = 'none';
+    // Afficher l'état de chargement
+    container.innerHTML = `
+        <div class="carte-loading">
+            <div class="carte-loading__spinner"></div>
+            <p class="carte-loading__text">Chargement du menu...</p>
+            <p class="carte-loading__subtext">Connexion au serveur en cours</p>
+        </div>
+    `;
     
     // Check for force refresh
     const urlParams = new URLSearchParams(window.location.search);
@@ -83,7 +175,6 @@ async function loadMenu() {
         const cached = getFromCache();
         if (cached) {
             menuData = cached;
-            showContent();
             renderMenu();
             return;
         }
@@ -94,7 +185,6 @@ async function loadMenu() {
         const data = await fetchMenuFromSheets();
         menuData = data;
         saveToCache(data);
-        showContent();
         renderMenu();
     } catch (err) {
         console.error('Erreur chargement menu:', err);
@@ -102,10 +192,9 @@ async function loadMenu() {
         // Try fallback data
         if (typeof CONFIG !== 'undefined' && CONFIG.menu && CONFIG.menu.fallbackData) {
             menuData = CONFIG.menu.fallbackData;
-            showContent();
             renderMenu();
         } else {
-            showError();
+            showError(err.message);
         }
     }
 }
@@ -114,7 +203,6 @@ async function loadMenu() {
  * Récupère les données depuis Google Sheets
  */
 async function fetchMenuFromSheets() {
-    // Get sheet ID from config (structure: CONFIG.menu.googleSheets.id)
     const sheetId = typeof CONFIG !== 'undefined' && CONFIG.menu && CONFIG.menu.googleSheets && CONFIG.menu.googleSheets.id
         ? CONFIG.menu.googleSheets.id
         : '';
@@ -123,10 +211,10 @@ async function fetchMenuFromSheets() {
         throw new Error('ID Google Sheets non configuré');
     }
     
-    // Get sheet name from config or use default
     const sheetName = typeof CONFIG !== 'undefined' && CONFIG.menu && CONFIG.menu.googleSheets && CONFIG.menu.googleSheets.sheetName
         ? CONFIG.menu.googleSheets.sheetName
         : 'Menu';
+    
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
     
     const response = await fetch(url);
@@ -136,8 +224,6 @@ async function fetchMenuFromSheets() {
     
     const text = await response.text();
     
-    // Parse Google Sheets JSON response
-    // Response format: google.visualization.Query.setResponse({...})
     const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
     if (!jsonStr || !jsonStr[1]) {
         throw new Error('Format de réponse invalide');
@@ -149,10 +235,8 @@ async function fetchMenuFromSheets() {
         throw new Error('Données vides');
     }
     
-    // Get column headers
     const headers = json.table.cols.map(col => col.label?.toLowerCase().trim() || '');
     
-    // Parse rows
     const items = json.table.rows
         .filter(row => row.c && row.c.some(cell => cell && cell.v))
         .map(row => {
@@ -165,9 +249,8 @@ async function fetchMenuFromSheets() {
             });
             return item;
         })
-        .filter(item => item.nom && item.categorie); // Filter items with required fields
+        .filter(item => item.nom && item.categorie);
     
-    // Filter available items only
     return items.filter(item => {
         const dispo = String(item.disponible || '').toUpperCase();
         return dispo !== 'NON' && dispo !== 'N' && dispo !== 'FALSE' && dispo !== '0';
@@ -175,42 +258,43 @@ async function fetchMenuFromSheets() {
 }
 
 /**
- * Affiche le contenu du menu
- */
-function showContent() {
-    document.getElementById('menu-loading').style.display = 'none';
-    document.getElementById('menu-error').style.display = 'none';
-    document.getElementById('menu-content').style.display = 'block';
-}
-
-/**
  * Affiche l'état d'erreur
  */
-function showError() {
-    document.getElementById('menu-loading').style.display = 'none';
-    document.getElementById('menu-error').style.display = 'flex';
-    document.getElementById('menu-content').style.display = 'none';
+function showError(message) {
+    const container = document.getElementById('menu-container');
+    container.innerHTML = `
+        <div class="carte-error">
+            <div class="carte-error__icon">⚠️</div>
+            <h3 class="carte-error__title">Impossible de charger le menu</h3>
+            <p class="carte-error__message">${escapeHtml(message)}</p>
+            <div class="carte-error__actions">
+                <button class="btn btn--primary btn--small" onclick="location.reload()">
+                    Réessayer
+                </button>
+            </div>
+            <p class="carte-error__hint">
+                Astuce : Ajoutez <code>?refresh=1</code> à l'URL pour forcer le rechargement
+            </p>
+        </div>
+    `;
 }
 
 /**
  * Rendu du menu avec les filtres appliqués
  */
 function renderMenu() {
-    const container = document.getElementById('menu-items');
+    const container = document.getElementById('menu-container');
     
-    // Filter data
     let filteredData = currentFilter === 'all' 
         ? menuData 
         : menuData.filter(item => item.categorie === currentFilter);
     
-    // Sort by ordre, then by category
     filteredData.sort((a, b) => {
         const orderA = parseInt(a.ordre) || 999;
         const orderB = parseInt(b.ordre) || 999;
         return orderA - orderB;
     });
     
-    // Group by category
     const grouped = {};
     filteredData.forEach(item => {
         const cat = item.categorie || 'Autres';
@@ -220,10 +304,8 @@ function renderMenu() {
         grouped[cat].push(item);
     });
     
-    // Define category order
     const categoryOrder = ['Finger Food', 'Assiettes du Marché', 'Desserts'];
     
-    // Render HTML
     let html = '';
     
     categoryOrder.forEach(category => {
@@ -231,55 +313,61 @@ function renderMenu() {
             const catConfig = MENU_CONFIG.categories[category] || { emoji: '🍽️', horaires: '' };
             
             html += `
-                <div class="menu-category" data-category="${category}">
-                    <div class="category-header">
-                        <h2>
-                            <span class="category-emoji">${catConfig.emoji}</span>
-                            ${category}
-                        </h2>
-                        ${catConfig.horaires ? `<span class="category-hours">${catConfig.horaires}</span>` : ''}
+                <section class="menu-section scroll-reveal animate-visible" data-category="${category}">
+                    <div class="menu-section__header">
+                        <div class="menu-section__icon">${catConfig.emoji}</div>
+                        <div>
+                            <h2 class="menu-section__title">${category}</h2>
+                            ${catConfig.horaires ? `<p class="menu-section__subtitle">${catConfig.horaires}</p>` : ''}
+                        </div>
                     </div>
-                    <div class="category-items">
-                        ${grouped[category].map(item => renderMenuItem(item)).join('')}
+                    
+                    <div class="menu-columns">
+                        <div class="menu-category">
+                            <div class="menu-items">
+                                ${grouped[category].map(item => renderMenuItem(item)).join('')}
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </section>
             `;
         }
     });
     
-    // Handle categories not in predefined order
     Object.keys(grouped).forEach(category => {
         if (!categoryOrder.includes(category) && grouped[category].length > 0) {
             html += `
-                <div class="menu-category" data-category="${category}">
-                    <div class="category-header">
-                        <h2>
-                            <span class="category-emoji">🍽️</span>
-                            ${category}
-                        </h2>
+                <section class="menu-section scroll-reveal animate-visible" data-category="${category}">
+                    <div class="menu-section__header">
+                        <div class="menu-section__icon">🍽️</div>
+                        <div>
+                            <h2 class="menu-section__title">${escapeHtml(category)}</h2>
+                        </div>
                     </div>
-                    <div class="category-items">
-                        ${grouped[category].map(item => renderMenuItem(item)).join('')}
+                    
+                    <div class="menu-columns">
+                        <div class="menu-category">
+                            <div class="menu-items">
+                                ${grouped[category].map(item => renderMenuItem(item)).join('')}
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </section>
             `;
         }
     });
     
     if (html === '') {
-        html = '<p class="menu-empty">Aucun plat disponible pour le moment.</p>';
+        html = `
+            <div class="carte-error">
+                <div class="carte-error__icon">🍽️</div>
+                <h3 class="carte-error__title">Aucun plat disponible</h3>
+                <p class="carte-error__message">Le menu sera bientôt disponible.</p>
+            </div>
+        `;
     }
     
     container.innerHTML = html;
-    
-    // Animate items
-    setTimeout(() => {
-        document.querySelectorAll('.menu-item').forEach((item, index) => {
-            setTimeout(() => {
-                item.classList.add('visible');
-            }, index * 50);
-        });
-    }, 100);
 }
 
 /**
@@ -287,18 +375,17 @@ function renderMenu() {
  */
 function renderMenuItem(item) {
     const prix = formatPrice(item.prix, item.unite);
-    const tempsPrep = item.temps_preparation ? `<span class="item-time">⏱️ ${item.temps_preparation}</span>` : '';
+    const tempsPrep = item.temps_preparation 
+        ? `<span class="menu-item__millesime">⏱️ ${escapeHtml(item.temps_preparation)}</span>` 
+        : '';
     
     return `
         <div class="menu-item">
-            <div class="item-content">
-                <div class="item-header">
-                    <h3 class="item-name">${escapeHtml(item.nom)}</h3>
-                    <span class="item-price">${prix}</span>
-                </div>
-                ${item.description ? `<p class="item-description">${escapeHtml(item.description)}</p>` : ''}
-                ${tempsPrep}
+            <div class="menu-item__info">
+                <span class="menu-item__name">${escapeHtml(item.nom)} ${tempsPrep}</span>
+                ${item.description ? `<span class="menu-item__domain">${escapeHtml(item.description)}</span>` : ''}
             </div>
+            <span class="menu-item__price">${prix}</span>
         </div>
     `;
 }
@@ -315,7 +402,7 @@ function formatPrice(prix, unite) {
     const formatted = numPrix.toFixed(2).replace('.', ',');
     const suffix = unite || '€';
     
-    return `${formatted}${suffix === '€/Kg' ? '€/Kg' : '€'}`;
+    return `${formatted}${suffix === '€/Kg' ? ' €/Kg' : ' €'}`;
 }
 
 /**
