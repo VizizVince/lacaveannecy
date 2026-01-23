@@ -168,9 +168,9 @@ a {
 }
 
 @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
+    0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+    40% { transform: translateX(-50%) translateY(-8px); }
+    60% { transform: translateX(-50%) translateY(-4px); }
 }
 
 @keyframes spin {
@@ -411,7 +411,8 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--header-height) var(--space-lg) var(--space-2xl);
+    /* padding-bottom augmenté pour laisser de l'espace au hero__scroll */
+    padding: var(--header-height) var(--space-lg) 80px;
     overflow: hidden;
 }
 
@@ -536,16 +537,38 @@ a {
 
 .hero__scroll {
     position: absolute;
-    margin-top : 10px;
-    bottom: var(--space-2xl);
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     color: var(--color-white);
     animation: bounce 2s infinite;
+    z-index: 5;
+    /* Empêcher les clics accidentels sur le contenu derrière */
+    pointer-events: auto;
 }
 
 .hero__scroll a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
     color: inherit;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.hero__scroll a:hover {
+    background: rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.hero__scroll svg {
+    width: 24px;
+    height: 24px;
 }
 
 /* ========================================
@@ -1661,7 +1684,7 @@ a {
 
     /* Hero Mobile Optimizations */
     .hero {
-        padding: var(--header-height) var(--space-md) var(--space-xl);
+        padding: var(--header-height) var(--space-md) 70px;
         min-height: 100svh; /* Utiliser svh pour mobile */
     }
 
@@ -1697,7 +1720,18 @@ a {
     }
 
     .hero__scroll {
-        bottom: var(--space-lg);
+        bottom: 15px;
+    }
+
+    .hero__scroll a {
+        width: 40px;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .hero__scroll svg {
+        width: 20px;
+        height: 20px;
     }
 
     /* Section padding mobile */
@@ -1802,6 +1836,21 @@ a {
 }
 
 @media (max-width: 480px) {
+    /* Hero scroll - plus petit et discret sur très petits écrans */
+    .hero__scroll {
+        bottom: 10px;
+    }
+
+    .hero__scroll a {
+        width: 36px;
+        height: 36px;
+    }
+
+    .hero__scroll svg {
+        width: 18px;
+        height: 18px;
+    }
+
     .hero__title-line {
         letter-spacing: 0.05em;
         font-size: clamp(2.2rem, 12vw, 3.5rem);
