@@ -326,41 +326,45 @@ const SheetsLoader = (function() {
     }
     
     /**
-     * Retourne l'emoji correspondant à une catégorie
+     * Retourne l'emoji correspondant à une catégorie de la carte
+     * Utilise CONFIG.emojis.carte depuis config.js
      */
     function getCategoryEmoji(categorie) {
-        const emojis = {
-            'les bulles': '✨',
-            'bulles': '✨',
-            'champagne': '🥂',
-            'savoie': '⛰️',
-            'loire': '🌊',
-            'vallée de la loire': '🌊',
-            'bourgogne': '🍇',
-            'beaujolais': '🍒',
-            'rhône': '☀️',
-            'vallée du rhône': '☀️',
-            'bordeaux': '🏰',
-            'bordelais': '🏰',
-            'sud-ouest': '🌻',
-            'languedoc': '🌿',
-            'provence': '💜',
-            'alsace': '🏔️',
-            'jura': '🧀',
-            'corse': '🏝️',
-            'italie': '🇮🇹',
-            'espagne': '🇪🇸',
-            'autres régions': '🌍',
-            'autres': '🌍',
-            'bières': '🍺',
-            'bières artisanales': '🍺',
-            'spiritueux': '🥃',
-            'soft': '🍋',
-            'sans alcool': '🍹'
-        };
-        
         const key = categorie.toLowerCase().trim();
-        return emojis[key] || '🍷';
+
+        // Utiliser les emojis de config.js si disponibles
+        if (typeof CONFIG !== 'undefined' && CONFIG.emojis && CONFIG.emojis.carte) {
+            const configEmojis = CONFIG.emojis.carte;
+            if (configEmojis[key]) {
+                return configEmojis[key];
+            }
+            // Retourner l'emoji par défaut de config.js
+            return configEmojis['default'] || '🍷';
+        }
+
+        // Fallback si CONFIG non disponible
+        return '🍷';
+    }
+
+    /**
+     * Retourne l'emoji correspondant à une catégorie du menu
+     * Utilise CONFIG.emojis.menu depuis config.js
+     */
+    function getMenuCategoryEmoji(categorie) {
+        const key = categorie.toLowerCase().trim();
+
+        // Utiliser les emojis de config.js si disponibles
+        if (typeof CONFIG !== 'undefined' && CONFIG.emojis && CONFIG.emojis.menu) {
+            const configEmojis = CONFIG.emojis.menu;
+            if (configEmojis[key]) {
+                return configEmojis[key];
+            }
+            // Retourner l'emoji par défaut de config.js
+            return configEmojis['default'] || '🍽️';
+        }
+
+        // Fallback si CONFIG non disponible
+        return '🍽️';
     }
     
     /**

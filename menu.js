@@ -13,12 +13,37 @@
 const MENU_CONFIG = {
     cacheKey: 'cave_annecy_menu',
     cacheDuration: 60 * 60 * 1000,
-    categories: {
-        'Finger Food': { emoji: '🥢', horaires: '18h30 - 23h' },
-        'Assiettes du Marché': { emoji: '🍳', horaires: '18h30 - 22h30' },
-        'Desserts': { emoji: '🍰', horaires: '' }
+    // Horaires par catégorie (les emojis viennent de CONFIG.emojis.menu)
+    horaires: {
+        'Finger Food': '18h30 - 23h',
+        'Assiettes du Marché': '18h30 - 22h30',
+        'Desserts': ''
     }
 };
+
+/**
+ * Retourne l'emoji d'une catégorie du menu depuis config.js
+ */
+function getMenuEmoji(category) {
+    const key = category.toLowerCase().trim();
+
+    // Utiliser CONFIG.emojis.menu si disponible
+    if (typeof CONFIG !== 'undefined' && CONFIG.emojis && CONFIG.emojis.menu) {
+        const configEmojis = CONFIG.emojis.menu;
+        if (configEmojis[key]) {
+            return configEmojis[key];
+        }
+        return configEmojis['default'] || '🍽️';
+    }
+
+    // Fallback hardcodé
+    const fallback = {
+        'finger food': '🥢',
+        'assiettes du marché': '🍳',
+        'desserts': '🍰'
+    };
+    return fallback[key] || '🍽️';
+}
 
 /**
  * État global
@@ -441,15 +466,16 @@ function renderMenu() {
         console.log('[Menu] Vérification catégorie:', category, '- trouvée:', !!grouped[category]);
 
         if (grouped[category] && grouped[category].length > 0) {
-            const catConfig = MENU_CONFIG.categories[category] || { emoji: '🍽️', horaires: '' };
+            const emoji = getMenuEmoji(category);
+            const horaires = MENU_CONFIG.horaires[category] || '';
 
             html += `
                 <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${category}">
                     <div class="menu-section__header menu-section__header--collapsible">
-                        <div class="menu-section__icon">${catConfig.emoji}</div>
+                        <div class="menu-section__icon">${emoji}</div>
                         <div class="menu-section__header-content">
                             <h2 class="menu-section__title">${category}</h2>
-                            ${catConfig.horaires ? `<p class="menu-section__subtitle">${catConfig.horaires}</p>` : ''}
+                            ${horaires ? `<p class="menu-section__subtitle">${horaires}</p>` : ''}
                         </div>
                         <div class="menu-section__toggle">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -473,10 +499,11 @@ function renderMenu() {
     // Puis les autres catégories non définies dans l'ordre
     Object.keys(grouped).forEach(category => {
         if (!categoryOrder.includes(category) && grouped[category].length > 0) {
+            const emoji = getMenuEmoji(category);
             html += `
                 <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${category}">
                     <div class="menu-section__header menu-section__header--collapsible">
-                        <div class="menu-section__icon">🍽️</div>
+                        <div class="menu-section__icon">${emoji}</div>
                         <div class="menu-section__header-content">
                             <h2 class="menu-section__title">${escapeHtml(category)}</h2>
                         </div>
