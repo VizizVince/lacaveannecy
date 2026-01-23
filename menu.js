@@ -201,6 +201,7 @@ async function loadMenu() {
 
 /**
  * Récupère les données depuis Google Sheets
+ * VERSION CORRIGÉE - Meilleure détection des en-têtes
  */
 async function fetchMenuFromSheets() {
     const sheetId = typeof CONFIG !== 'undefined' && CONFIG.menu && CONFIG.menu.googleSheets && CONFIG.menu.googleSheets.id
@@ -216,6 +217,8 @@ async function fetchMenuFromSheets() {
         : 'Menu';
     
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+    
+    console.log('[Menu] Fetching from:', sheetName);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -238,34 +241,38 @@ async function fetchMenuFromSheets() {
     const cols = json.table.cols;
     const rows = json.table.rows;
     
+    console.log('[Menu] Colonnes reçues:', cols.map(c => c.label));
+    console.log('[Menu] Nombre de lignes:', rows.length);
+    
     // ═══════════════════════════════════════════════════════════════════════
-    // CORRECTION: Extraction robuste des headers
-    // Utilise col.label si disponible, sinon la première ligne de données
+    // CORRECTION: Toujours utiliser la première ligne comme en-têtes
+    // Car Google Sheets ne retourne pas toujours les labels correctement
     // ═══════════════════════════════════════════════════════════════════════
-    const headers = cols.map((col, index) => {
-        // D'abord essayer le label de la colonne
-        if (col.label && col.label.trim()) {
-            return normalizeHeader(col.label);
-        }
-        // Sinon utiliser la première ligne comme en-tête
-        if (rows[0] && rows[0].c && rows[0].c[index] && rows[0].c[index].v) {
-            return normalizeHeader(String(rows[0].c[index].v));
-        }
-        return `col_${index}`;
-    });
     
-    console.log('[Menu] Headers détectés:', headers);
+    // Extraire les headers depuis la première ligne de données
+    const headers = [];
+    if (rows[0] && rows[0].c) {
+        rows[0].c.forEach((cell, index) => {
+            if (cell && cell.v) {
+                headers[index] = normalizeHeader(String(cell.v));
+            } else {
+                headers[index] = `col_${index}`;
+            }
+        });
+    }
     
-    // Déterminer si la première ligne est un en-tête (contient "categorie", "nom", etc.)
-    const firstRowIsHeader = headers.some(h => 
-        ['categorie', 'nom', 'description', 'prix'].includes(h)
-    );
+    console.log('[Menu] Headers extraits:', headers);
     
-    const startIndex = firstRowIsHeader ? 1 : 0;
+    // Vérifier qu'on a bien les colonnes essentielles
+    if (!headers.includes('categorie') || !headers.includes('nom')) {
+        console.error('[Menu] Colonnes manquantes! Headers trouvés:', headers);
+        throw new Error('Colonnes "categorie" et "nom" non trouvées. Vérifiez les en-têtes du Google Sheets.');
+    }
     
+    // Commencer à partir de la ligne 1 (ignorer la ligne 0 qui contient les en-têtes)
     const items = [];
     
-    for (let i = startIndex; i < rows.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         if (!row.c) continue;
         
@@ -285,18 +292,31 @@ async function fetchMenuFromSheets() {
             }
         });
         
+        // Debug: afficher chaque item parsé
+        if (hasData) {
+            console.log('[Menu] Item parsé:', item);
+        }
+        
         if (hasData && item.nom && item.categorie) {
             items.push(item);
         }
     }
     
-    console.log('[Menu] Items parsés:', items.length, items);
+    console.log('[Menu] Total items valides:', items.length);
     
     // Filtrer les items non disponibles
-    return items.filter(item => {
-        const dispo = String(item.disponible || '').toUpperCase();
-        return dispo !== 'NON' && dispo !== 'N' && dispo !== 'FALSE' && dispo !== '0';
+    const filtered = items.filter(item => {
+        const dispo = String(item.disponible || 'OUI').toUpperCase().trim();
+        const isAvailable = dispo !== 'NON' && dispo !== 'N' && dispo !== 'FALSE' && dispo !== '0';
+        if (!isAvailable) {
+            console.log('[Menu] Item filtré (non disponible):', item.nom);
+        }
+        return isAvailable;
     });
+    
+    console.log('[Menu] Items après filtre disponibilité:', filtered.length);
+    
+    return filtered;
 }
 
 /**
