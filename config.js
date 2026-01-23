@@ -231,7 +231,240 @@ const CONFIG = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 8: MENTIONS LÉGALES
+    // SECTION 8: MENU NOURRITURE - CONNEXION GOOGLE SHEETS
+    // ═══════════════════════════════════════════════════════════════════════
+    // 
+    // Le menu est chargé depuis Google Sheets !
+    // 
+    // Pour configurer:
+    // 1. Créez un onglet "Menu" dans votre Google Sheets
+    // 2. Publiez-le sur le web (Fichier > Partager > Publier sur le web)
+    // 
+    // Structure des colonnes (voir GUIDE-MENU-GOOGLE-SHEETS.md):
+    // categorie | nom | description | prix | unite | temps_preparation | disponible | ordre
+    //
+    // Catégories: "Finger Food", "Assiettes du Marché", "Desserts"
+    //
+    // Cache: Les données sont mises en cache 1h dans le navigateur
+    // Rafraîchir: Ajoutez ?refresh=1 à l'URL pour forcer la mise à jour
+    // 
+    // ═══════════════════════════════════════════════════════════════════════
+
+    menu: {
+        // Connexion Google Sheets
+        googleSheets: {
+            // ID du Google Sheets (le même que pour l'agenda et la carte)
+            id: "1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4",
+            
+            // Nom de l'onglet contenant le menu
+            sheetName: "Menu"
+        },
+
+        // Textes de la page Menu
+        page: {
+            titre: "Notre Menu",
+            sousTitre: "Petite restauration de 18h30 à 23h",
+            note: "Prix TTC, service compris"
+        },
+
+        // Horaires par catégorie
+        horaires: {
+            fingerFood: "18h30 - 23h",
+            assiettes: "18h30 - 22h30"
+        },
+
+        // ═══════════════════════════════════════════════════════════════════
+        // FALLBACK: Données statiques (utilisées si Google Sheets échoue)
+        // ═══════════════════════════════════════════════════════════════════
+        
+        fallbackData: [
+            {
+                categorie: "Finger Food",
+                nom: "Paté en Croûte de volaille",
+                description: "citron confit, moutarde, mayonnaise au Vin Jaune",
+                prix: "14,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 1
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Cromesquis croziflette",
+                description: "",
+                prix: "9,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 2
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Assiette de Fromages du moment des Frox",
+                description: "",
+                prix: "20,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 3
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Assiette de Charcuteries de chez Baud",
+                description: "",
+                prix: "20,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 4
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Assiette de jambon Ibérique de Bellota",
+                description: "48 mois (80g)",
+                prix: "24,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 5
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Pommes dauphines",
+                description: "sauce ajo-blanco",
+                prix: "9,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 6
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Rillettes de poisson Maison",
+                description: "toasts grillés",
+                prix: "15,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 7
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Planche Mixte Charcuterie et fromage",
+                description: "",
+                prix: "30,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 8
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Tenders de Poulet Jaune",
+                description: "Jamaican spicy",
+                prix: "14,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 9
+            },
+            {
+                categorie: "Finger Food",
+                nom: "Naans",
+                description: "sauce butternut, crème coriandre, kaki, huile curry",
+                prix: "10,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 10
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Magret de Canard",
+                description: "purée de panais, Trévise, condiment chocolat",
+                prix: "15,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 1
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Rouget Barbet",
+                description: "Risotto de pomme de terre, coques, jus de coquillages carné",
+                prix: "15,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 2
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Poireaux vinaigrette mimosa",
+                description: "feuille de Nori",
+                prix: "11,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 3
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Tataki Boeuf",
+                description: "patate douce sauce saté curry",
+                prix: "20,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 4
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Tagliatelles de Celeri",
+                description: "cacahuètes, citron brulé",
+                prix: "12,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 5
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Carpaccio de Saint-Jacques",
+                description: "daïkon, radis noir, feuille de kefir",
+                prix: "16,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 6
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Epaule d'agneau",
+                description: "purée de patate douce, jus de viande",
+                prix: "70",
+                unite: "€/Kg",
+                temps_preparation: "environ 40min",
+                disponible: "OUI",
+                ordre: 7
+            },
+            {
+                categorie: "Assiettes du Marché",
+                nom: "Côte de Boeuf Montbéliarde",
+                description: "grenailles, sauce aux vin rouges",
+                prix: "85",
+                unite: "€/Kg",
+                temps_preparation: "environ 40min",
+                disponible: "OUI",
+                ordre: 8
+            },
+            {
+                categorie: "Desserts",
+                nom: "Baba Chartreuse",
+                description: "crumble, sorbet Chartreuse Verte, chantilly amande",
+                prix: "10,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 1
+            },
+            {
+                categorie: "Desserts",
+                nom: "Poires confites",
+                description: "diplomate sarrasin, salade de poire caramel",
+                prix: "8,00",
+                unite: "€",
+                disponible: "OUI",
+                ordre: 2
+            }
+        ]
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SECTION 9: MENTIONS LÉGALES
     // ═══════════════════════════════════════════════════════════════════════
     
     legal: {
