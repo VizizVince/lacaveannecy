@@ -471,7 +471,7 @@ function renderMenuItem(item) {
         : '';
     
     return `
-        <div class="menu-item">
+        <div class="menu-item visible">
             <div class="menu-item__info">
                 <span class="menu-item__name">${escapeHtml(item.nom)} ${tempsPrep}</span>
                 ${item.description ? `<span class="menu-item__domain">${escapeHtml(String(item.description))}</span>` : ''}
