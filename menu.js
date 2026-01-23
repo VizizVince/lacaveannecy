@@ -114,16 +114,19 @@ async function loadMenu() {
  * Récupère les données depuis Google Sheets
  */
 async function fetchMenuFromSheets() {
-    // Get sheet ID from config
-    const sheetId = typeof CONFIG !== 'undefined' && CONFIG.googleSheets && CONFIG.googleSheets.menuId
-        ? CONFIG.googleSheets.menuId
+    // Get sheet ID from config (structure: CONFIG.menu.googleSheets.id)
+    const sheetId = typeof CONFIG !== 'undefined' && CONFIG.menu && CONFIG.menu.googleSheets && CONFIG.menu.googleSheets.id
+        ? CONFIG.menu.googleSheets.id
         : '';
     
     if (!sheetId) {
         throw new Error('ID Google Sheets non configuré');
     }
     
-    const sheetName = 'Menu';
+    // Get sheet name from config or use default
+    const sheetName = typeof CONFIG !== 'undefined' && CONFIG.menu && CONFIG.menu.googleSheets && CONFIG.menu.googleSheets.sheetName
+        ? CONFIG.menu.googleSheets.sheetName
+        : 'Menu';
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
     
     const response = await fetch(url);
