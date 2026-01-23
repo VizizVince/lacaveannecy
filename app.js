@@ -314,31 +314,31 @@ function parseEventRow(cells) {
     if (!dateValue || !nom) return null;
     
     // Parser la date
-    let date;
-    if (typeof dateValue === 'string') {
-        // Format JJ/MM/AAAA ou AAAA-MM-JJ
-        if (dateValue.includes('/')) {
-            const parts = dateValue.split('/');
-            if (parts.length === 3) {
-                date = new Date(parts[2], parts[1] - 1, parts[0]);
-            }
-        } else {
-            date = new Date(dateValue);
-        }
-    } else if (dateValue instanceof Date) {
-        date = dateValue;
-    } else if (typeof dateValue === 'object' && dateValue.v) {
-        // Format Google Sheets Date
-        date = new Date(dateValue.v);
-    } else {
-        // Essayer de parser comme chaîne "Date(year,month,day)"
-        const match = String(dateValue).match(/Date\((\d+),(\d+),(\d+)\)/);
-        if (match) {
-            date = new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
-        } else {
-            date = new Date(dateValue);
-        }
+let date;
+if (typeof dateValue === 'string') {
+    // D'ABORD vérifier si c'est le format Google "Date(year,month,day)"
+    const match = dateValue.match(/Date\((\d+),(\d+),(\d+)\)/);
+    if (match) {
+        date = new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
     }
+    // Sinon format JJ/MM/AAAA
+    else if (dateValue.includes('/')) {
+        const parts = dateValue.split('/');
+        if (parts.length === 3) {
+            date = new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+    } 
+    // Sinon format ISO ou autre
+    else {
+        date = new Date(dateValue);
+    }
+} else if (dateValue instanceof Date) {
+    date = dateValue;
+} else if (typeof dateValue === 'object' && dateValue.v) {
+    date = new Date(dateValue.v);
+} else {
+    date = new Date(dateValue);
+}
     
     // Vérifier si la date est valide
     if (isNaN(date.getTime())) {
