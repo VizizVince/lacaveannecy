@@ -2,7 +2,7 @@
    CSS VARIABLES & DESIGN TOKENS
 ======================================== */
 :root {
-    /* Colors - BasÃƒÂ© sur le logo vert foncÃƒÂ© */
+    /* Colors - Basé sur le logo vert foncé */
     --color-primary: #1a2f2a;
     --color-primary-light: #2a4a42;
     --color-primary-dark: #0f1c19;
@@ -364,7 +364,7 @@ button {
 .hero__overlay {
     position: absolute;
     inset: 0;
-    /* Image de fond dÃ©finie dynamiquement via JavaScript (config.js > images.heroBackground) */
+    /* Image de fond définie dynamiquement via JavaScript (config.js > images.heroBackground) */
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
