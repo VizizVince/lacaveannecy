@@ -2280,6 +2280,7 @@ a {
 .hero__google-rating {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-lg);
     background: rgba(255, 255, 255, 0.15);
@@ -2291,6 +2292,7 @@ a {
     margin-bottom: var(--space-lg);
     transition: all var(--transition-fast);
     text-decoration: none;
+    text-align: center;
 }
 
 .hero__google-rating:hover {

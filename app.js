@@ -219,12 +219,15 @@ function parseGoogleReviewsData(rows) {
     for (let i = 1; i < rows.length; i++) {
         if (!rows[i] || !rows[i].c) continue;
 
+        // Debug: afficher la structure brute des cellules pour cette ligne
+        console.log(`[Avis Google] Ligne ${i + 1} - cellules brutes:`, JSON.stringify(rows[i].c));
+
         const nom = getCellValue(rows[i], 2); // Colonne C (index 2)
         const note = parseNumber(getCellValue(rows[i], 3)); // Colonne D (index 3)
         const commentaire = getCellValue(rows[i], 4); // Colonne E (index 4)
         const dateValue = getCellValue(rows[i], 5); // Colonne F (index 5)
 
-        console.log(`[Avis Google] Ligne ${i + 1}: nom="${nom}", note=${note}, commentaire="${commentaire ? commentaire.substring(0, 30) + '...' : ''}", date=${dateValue}`);
+        console.log(`[Avis Google] Ligne ${i + 1}: nom="${nom}", note=${note}, commentaire="${commentaire ? String(commentaire).substring(0, 30) + '...' : 'null'}", date=${dateValue}`);
 
         // Ne pas ajouter si pas de nom ou pas de commentaire
         if (!nom || !commentaire) {
