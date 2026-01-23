@@ -682,37 +682,101 @@ document.addEventListener('DOMContentLoaded', function() {
     // ═══════════════════════════════════════════════════════════════════════
     // MOBILE MENU
     // ═══════════════════════════════════════════════════════════════════════
-    
+
     const burger = document.getElementById('burger');
     const nav = document.getElementById('nav');
-    
+    let scrollPosition = 0;
+
+    /**
+     * Ouvre le menu mobile en préservant la position de scroll
+     */
+    function openMobileMenu() {
+        scrollPosition = window.pageYOffset;
+        burger.classList.add('header__burger--active');
+        burger.setAttribute('aria-expanded', 'true');
+        nav.classList.add('nav--open');
+        document.body.classList.add('menu-open');
+        document.body.style.top = `-${scrollPosition}px`;
+    }
+
+    /**
+     * Ferme le menu mobile et restaure la position de scroll
+     */
+    function closeMobileMenu() {
+        burger.classList.remove('header__burger--active');
+        burger.setAttribute('aria-expanded', 'false');
+        nav.classList.remove('nav--open');
+        document.body.classList.remove('menu-open');
+        document.body.style.top = '';
+        window.scrollTo(0, scrollPosition);
+    }
+
     if (burger && nav) {
-        burger.addEventListener('click', function() {
-            const isOpen = burger.classList.toggle('header__burger--active');
-            burger.setAttribute('aria-expanded', isOpen);
-            nav.classList.toggle('nav--open');
-            document.body.classList.toggle('menu-open');
+        burger.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const isOpen = nav.classList.contains('nav--open');
+            if (isOpen) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
         });
-        
+
         // Fermer le menu au clic sur un lien
         document.querySelectorAll('.nav__link').forEach(function(link) {
-            link.addEventListener('click', function() {
-                burger.classList.remove('header__burger--active');
-                burger.setAttribute('aria-expanded', 'false');
-                nav.classList.remove('nav--open');
-                document.body.classList.remove('menu-open');
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+
+                // Si c'est un lien vers une section de la page actuelle
+                if (href && href.startsWith('#')) {
+                    e.preventDefault();
+                    closeMobileMenu();
+
+                    // Attendre la fermeture du menu avant de scroller
+                    setTimeout(function() {
+                        const target = document.querySelector(href);
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 300);
+                } else {
+                    // Lien externe (autre page), fermer simplement le menu
+                    closeMobileMenu();
+                }
             });
+        });
+
+        // Fermer le menu en appuyant sur Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && nav.classList.contains('nav--open')) {
+                closeMobileMenu();
+            }
+        });
+
+        // Fermer le menu en cliquant en dehors (sur le fond)
+        nav.addEventListener('click', function(e) {
+            if (e.target === nav) {
+                closeMobileMenu();
+            }
         });
     }
     
     // ═══════════════════════════════════════════════════════════════════════
     // SMOOTH SCROLL
     // ═══════════════════════════════════════════════════════════════════════
-    
+
     document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        // Ignorer les liens de navigation (déjà gérés dans MOBILE MENU)
+        if (anchor.classList.contains('nav__link')) return;
+
         anchor.addEventListener('click', function(e) {
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+
             e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
+            const target = document.querySelector(href);
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
