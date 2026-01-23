@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="carte-sheets.css">
     
     <!-- Configuration du site -->
     <script src="config.js"></script>
@@ -72,7 +73,7 @@
     <section class="carte-hero">
         <div class="container">
             <div class="carte-hero__content">
-                <span class="section__badge" id="carte-badge">Plus de 400 références</span>
+                <span class="section__badge" id="carte-badge">Chargement...</span>
                 <h1 class="carte-hero__title" id="carte-titre">La Carte des Vins</h1>
                 <p class="carte-hero__subtitle" id="carte-description">
                     Une sélection pointue de vins naturels et de vignerons passionnés, 
@@ -84,24 +85,36 @@
 
     <!-- ═══════════════════════════════════════════════════════════════════════════
          FILTRES DE NAVIGATION
-         Générés automatiquement depuis config.js > carte.regions
+         Générés automatiquement depuis Google Sheets
          ═══════════════════════════════════════════════════════════════════════════ -->
     <nav class="filter-nav" id="filterNav">
         <div class="container">
             <div class="filter-tabs" id="filter-tabs">
-                <!-- Les onglets seront générés par JavaScript -->
+                <!-- Les onglets seront générés par JavaScript depuis Google Sheets -->
+                <div class="filter-loading">
+                    <span class="filter-loading__dot"></span>
+                    <span class="filter-loading__dot"></span>
+                    <span class="filter-loading__dot"></span>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- ═══════════════════════════════════════════════════════════════════════════
          CONTENU DE LA CARTE
-         Généré automatiquement depuis config.js > carte.regions
+         Généré automatiquement depuis Google Sheets
          ═══════════════════════════════════════════════════════════════════════════ -->
     <main class="carte-content">
         <div class="container">
             <!-- Les sections seront générées par JavaScript -->
-            <div id="menu-container"></div>
+            <div id="menu-container">
+                <!-- État de chargement initial -->
+                <div class="carte-loading">
+                    <div class="carte-loading__spinner"></div>
+                    <p class="carte-loading__text">Chargement de la carte des vins...</p>
+                    <p class="carte-loading__subtext">Connexion au serveur en cours</p>
+                </div>
+            </div>
             
             <!-- Footer de la carte -->
             <div class="menu-footer">
@@ -149,7 +162,9 @@
 
     <!-- ═══════════════════════════════════════════════════════════════════════════
          SCRIPTS
+         L'ordre est important : config → sheets-loader → carte
          ═══════════════════════════════════════════════════════════════════════════ -->
+    <script src="sheets-loader.js"></script>
     <script src="carte.js"></script>
 </body>
 </html>
