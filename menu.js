@@ -231,30 +231,84 @@ async function fetchMenuFromSheets() {
     
     const json = JSON.parse(jsonStr[1]);
     
-    if (!json.table || !json.table.rows) {
+    if (!json.table || !json.table.rows || json.table.rows.length === 0) {
         throw new Error('Données vides');
     }
     
-    const headers = json.table.cols.map(col => col.label?.toLowerCase().trim() || '');
+    const cols = json.table.cols;
+    const rows = json.table.rows;
     
-    const items = json.table.rows
-        .filter(row => row.c && row.c.some(cell => cell && cell.v))
-        .map(row => {
-            const item = {};
-            row.c.forEach((cell, index) => {
-                const header = headers[index];
-                if (header) {
-                    item[header] = cell ? (cell.v ?? cell.f ?? '') : '';
+    // ═══════════════════════════════════════════════════════════════════════
+    // CORRECTION: Extraction robuste des headers
+    // Utilise col.label si disponible, sinon la première ligne de données
+    // ═══════════════════════════════════════════════════════════════════════
+    const headers = cols.map((col, index) => {
+        // D'abord essayer le label de la colonne
+        if (col.label && col.label.trim()) {
+            return normalizeHeader(col.label);
+        }
+        // Sinon utiliser la première ligne comme en-tête
+        if (rows[0] && rows[0].c && rows[0].c[index] && rows[0].c[index].v) {
+            return normalizeHeader(String(rows[0].c[index].v));
+        }
+        return `col_${index}`;
+    });
+    
+    console.log('[Menu] Headers détectés:', headers);
+    
+    // Déterminer si la première ligne est un en-tête (contient "categorie", "nom", etc.)
+    const firstRowIsHeader = headers.some(h => 
+        ['categorie', 'nom', 'description', 'prix'].includes(h)
+    );
+    
+    const startIndex = firstRowIsHeader ? 1 : 0;
+    
+    const items = [];
+    
+    for (let i = startIndex; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row.c) continue;
+        
+        const item = {};
+        let hasData = false;
+        
+        headers.forEach((header, index) => {
+            const cell = row.c[index];
+            if (header && cell) {
+                let value = cell.v;
+                // Utiliser la valeur formatée si disponible (pour les prix notamment)
+                if (value === null || value === undefined) {
+                    value = cell.f || '';
                 }
-            });
-            return item;
-        })
-        .filter(item => item.nom && item.categorie);
+                item[header] = value;
+                if (value !== null && value !== '') hasData = true;
+            }
+        });
+        
+        if (hasData && item.nom && item.categorie) {
+            items.push(item);
+        }
+    }
     
+    console.log('[Menu] Items parsés:', items.length, items);
+    
+    // Filtrer les items non disponibles
     return items.filter(item => {
         const dispo = String(item.disponible || '').toUpperCase();
         return dispo !== 'NON' && dispo !== 'N' && dispo !== 'FALSE' && dispo !== '0';
     });
+}
+
+/**
+ * Normalise un nom de colonne en clé JavaScript
+ */
+function normalizeHeader(header) {
+    return String(header)
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Retirer les accents
+        .replace(/[^a-z0-9]+/g, '_')     // Remplacer les caractères spéciaux
+        .replace(/^_+|_+$/g, '');         // Retirer les underscores au début/fin
 }
 
 /**
