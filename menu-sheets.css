@@ -1,0 +1,393 @@
+/**
+ * Menu Styles - La Cave Annecy
+ * Styles pour la page menu (petite restauration)
+ */
+
+/* ========================================
+   HERO SECTION
+   ======================================== */
+
+.menu-hero {
+    background: linear-gradient(135deg, var(--color-primary, #2c1810) 0%, var(--color-secondary, #4a2c2a) 100%);
+    padding: 120px 20px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('images/texture-paper.png') repeat;
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+.menu-hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.menu-hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.5rem;
+    font-weight: 500;
+    color: var(--color-light, #f5f0e8);
+    margin: 0 0 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.menu-icon {
+    font-size: 2.5rem;
+}
+
+.menu-subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: var(--color-accent, #d4a574);
+    margin: 0 0 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.menu-note {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(245, 240, 232, 0.7);
+    margin: 0;
+    font-style: italic;
+}
+
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
+
+.menu-main {
+    background: var(--color-background, #faf8f5);
+    min-height: 60vh;
+    padding: 40px 20px 80px;
+}
+
+.menu-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   LOADING & ERROR STATES
+   ======================================== */
+
+.menu-loading,
+.menu-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    text-align: center;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--color-light, #f5f0e8);
+    border-top-color: var(--color-accent, #d4a574);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.menu-loading p,
+.menu-error p {
+    margin-top: 20px;
+    font-family: 'Montserrat', sans-serif;
+    color: var(--color-text, #333);
+}
+
+.btn-retry {
+    margin-top: 15px;
+    padding: 12px 30px;
+    background: var(--color-accent, #d4a574);
+    color: var(--color-primary, #2c1810);
+    border: none;
+    border-radius: 25px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-retry:hover {
+    background: var(--color-primary, #2c1810);
+    color: var(--color-light, #f5f0e8);
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   FILTER BUTTONS
+   ======================================== */
+
+.menu-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.filter-btn {
+    padding: 12px 24px;
+    background: transparent;
+    border: 2px solid var(--color-primary, #2c1810);
+    border-radius: 30px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-primary, #2c1810);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.filter-btn:hover {
+    background: var(--color-primary, #2c1810);
+    color: var(--color-light, #f5f0e8);
+}
+
+.filter-btn.active {
+    background: var(--color-accent, #d4a574);
+    border-color: var(--color-accent, #d4a574);
+    color: var(--color-primary, #2c1810);
+}
+
+/* ========================================
+   MENU CATEGORIES
+   ======================================== */
+
+.menu-category {
+    margin-bottom: 50px;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--color-accent, #d4a574);
+    margin-bottom: 25px;
+}
+
+.category-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 500;
+    color: var(--color-primary, #2c1810);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.category-emoji {
+    font-size: 1.8rem;
+}
+
+.category-hours {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    color: var(--color-accent, #d4a574);
+    background: var(--color-primary, #2c1810);
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* ========================================
+   MENU ITEMS
+   ======================================== */
+
+.category-items {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.menu-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.menu-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.menu-item:hover {
+    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+}
+
+.item-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.item-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--color-primary, #2c1810);
+    margin: 0;
+    flex: 1;
+}
+
+.item-price {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-accent, #d4a574);
+    white-space: nowrap;
+}
+
+.item-description {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+    font-style: italic;
+}
+
+.item-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    color: var(--color-accent, #d4a574);
+    background: rgba(212, 165, 116, 0.1);
+    padding: 5px 12px;
+    border-radius: 15px;
+    width: fit-content;
+}
+
+/* Empty state */
+.menu-empty {
+    text-align: center;
+    padding: 60px 20px;
+    font-family: 'Montserrat', sans-serif;
+    color: #999;
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .menu-hero {
+        padding: 100px 15px 50px;
+    }
+    
+    .menu-hero h1 {
+        font-size: 2.5rem;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .menu-icon {
+        font-size: 2rem;
+    }
+    
+    .menu-subtitle {
+        font-size: 1rem;
+    }
+    
+    .menu-filters {
+        padding: 15px;
+        gap: 8px;
+    }
+    
+    .filter-btn {
+        padding: 10px 18px;
+        font-size: 0.85rem;
+    }
+    
+    .category-header h2 {
+        font-size: 1.6rem;
+    }
+    
+    .category-hours {
+        font-size: 0.75rem;
+        padding: 5px 12px;
+    }
+    
+    .menu-item {
+        padding: 18px 20px;
+    }
+    
+    .item-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .item-name {
+        font-size: 1.15rem;
+    }
+    
+    .item-price {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-hero h1 {
+        font-size: 2rem;
+    }
+    
+    .menu-filters {
+        flex-direction: column;
+    }
+    
+    .filter-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .category-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu | La Cave Annecy</title>
+    <meta name="description" content="Découvrez notre carte de petite restauration : finger food, assiettes du marché à partager et desserts. La Cave Annecy, bar à vins depuis 1987.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="menu-sheets.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <img src="images/logo.png" alt="La Cave Annecy" class="logo-img">
+            </a>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li><a href="index.html">Accueil</a></li>
+                    <li><a href="carte.html">Carte des Vins</a></li>
+                    <li><a href="menu.html" class="active">Menu</a></li>
+                    <li><a href="index.html#agenda">Agenda</a></li>
+                    <li><a href="index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <button class="nav-toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section Menu -->
+    <section class="menu-hero">
+        <div class="menu-hero-content">
+            <h1>
+                <span class="menu-icon">🍴</span>
+                Notre Menu
+            </h1>
+            <p class="menu-subtitle">Petite restauration de 18h30 à 23h</p>
+            <p class="menu-note">Prix TTC, service compris</p>
+        </div>
+    </section>
+
+    <!-- Menu Content -->
+    <main class="menu-main">
+        <div class="menu-container">
+            
+            <!-- Loading State -->
+            <div id="menu-loading" class="menu-loading">
+                <div class="loading-spinner"></div>
+                <p>Chargement du menu...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="menu-error" class="menu-error" style="display: none;">
+                <p>⚠️ Impossible de charger le menu. Veuillez réessayer.</p>
+                <button onclick="loadMenu()" class="btn-retry">Réessayer</button>
+            </div>
+
+            <!-- Menu Categories Container -->
+            <div id="menu-content" class="menu-content" style="display: none;">
+                
+                <!-- Filter Tabs -->
+                <div class="menu-filters">
+                    <button class="filter-btn active" data-category="all">
+                        🍽️ Tout
+                    </button>
+                    <button class="filter-btn" data-category="Finger Food">
+                        🥢 Finger Food
+                    </button>
+                    <button class="filter-btn" data-category="Assiettes du Marché">
+                        🍳 Assiettes
+                    </button>
+                    <button class="filter-btn" data-category="Desserts">
+                        🍰 Desserts
+                    </button>
+                </div>
+
+                <!-- Menu Items Container -->
+                <div id="menu-items" class="menu-items">
+                    <!-- Items will be injected here by JavaScript -->
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <img src="images/logo.png" alt="La Cave Annecy" class="footer-logo">
+                    <p>Bar à vins depuis 1987</p>
+                </div>
+                <div class="footer-contact">
+                    <p>📍 21 Rue Sainte-Claire, 74000 Annecy</p>
+                    <p>📞 04 50 51 03 28</p>
+                </div>
+                <div class="footer-hours">
+                    <p><strong>Horaires</strong></p>
+                    <p>Mar-Sam : 18h - 1h</p>
+                    <p>Fermé dimanche et lundi</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 La Cave Annecy. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="sheets-loader.js"></script>
+    <script src="menu.js"></script>
+</body>
+</html>
