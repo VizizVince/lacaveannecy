@@ -485,7 +485,8 @@ button {
 
 .hero__scroll {
     position: absolute;
-    bottom: var(--space-1xl);
+    margin-top : 10px;
+    bottom: var(--space-2xl);
     left: 50%;
     transform: translateX(-50%);
     color: var(--color-white);
