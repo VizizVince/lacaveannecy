@@ -464,9 +464,61 @@ const CONFIG = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 9: MENTIONS LÉGALES
+    // SECTION 9: AVIS GOOGLE
     // ═══════════════════════════════════════════════════════════════════════
-    
+    //
+    // Les avis Google sont affichés à deux endroits:
+    // 1. Hero: Note globale + nombre d'avis (sous le badge "Bar à vins")
+    // 2. Contact: Top 3 des meilleurs avis (sous la carte Google Maps)
+    //
+    // Pour mettre à jour: Visitez votre page Google Business et copiez
+    // les informations ci-dessous. Limitez les commentaires à 150 caractères.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    googleAvis: {
+        // Lien vers la page Google Business
+        lienGoogle: "https://share.google/yJc5yZshOdq2ugHs4",
+
+        // Note globale (sur 5)
+        noteGlobale: 4.7,
+
+        // Nombre total d'avis
+        nombreAvis: 238,
+
+        // Textes de la section avis
+        textes: {
+            titreSectionContact: "Ce que nos clients disent",
+            boutonVoirTous: "Voir tous les avis"
+        },
+
+        // Top 3 des meilleurs avis (affichés dans la section Contact)
+        // Limitez les commentaires à 150 caractères maximum
+        topAvis: [
+            {
+                auteur: "Marie L.",
+                note: 5,
+                commentaire: "Un endroit magique avec une sélection de vins exceptionnelle. Le personnel est aux petits soins et les conseils sont toujours justes. On y revient !",
+                dateRelative: "il y a 2 semaines"
+            },
+            {
+                auteur: "Thomas D.",
+                note: 5,
+                commentaire: "La meilleure cave à vins d'Annecy ! Ambiance chaleureuse, vins de qualité et planches de charcuterie délicieuses. Un incontournable.",
+                dateRelative: "il y a 1 mois"
+            },
+            {
+                auteur: "Sophie M.",
+                note: 5,
+                commentaire: "Coup de coeur pour ce bar à vins authentique. Les assiettes du marché sont un régal et le choix de vins naturels est impressionnant.",
+                dateRelative: "il y a 2 mois"
+            }
+        ]
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SECTION 10: MENTIONS LÉGALES
+    // ═══════════════════════════════════════════════════════════════════════
+
     legal: {
         copyright: "Tous droits réservés.",
         avertissement: "L'abus d'alcool est dangereux pour la santé. À consommer avec modération."

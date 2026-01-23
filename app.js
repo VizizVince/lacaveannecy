@@ -15,8 +15,131 @@ const EVENT_ICONS = {
     calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
     clock: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
     wine: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg>',
-    star: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+    star: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    starFilled: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+    starEmpty: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
 };
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * AVIS GOOGLE
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * Génère les étoiles HTML pour une note donnée (sur 5)
+ */
+function generateStars(rating, cssClass = '') {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    let html = '';
+
+    // Étoiles pleines
+    for (let i = 0; i < fullStars; i++) {
+        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    // Demi-étoile (optionnel, affichée comme étoile pleine pour simplifier)
+    if (hasHalfStar) {
+        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    // Étoiles vides
+    for (let i = 0; i < emptyStars; i++) {
+        html += `<svg class="${cssClass} star-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    return html;
+}
+
+/**
+ * Applique les avis Google au Hero et à la section Contact
+ */
+function applyGoogleReviews() {
+    if (!CONFIG.googleAvis) return;
+
+    const avis = CONFIG.googleAvis;
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // HERO: Badge de note Google
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const heroRating = document.getElementById('hero-google-rating');
+    if (heroRating && avis.lienGoogle) {
+        heroRating.href = avis.lienGoogle;
+    }
+
+    const heroStars = document.getElementById('hero-rating-stars');
+    if (heroStars && avis.noteGlobale) {
+        heroStars.innerHTML = generateStars(avis.noteGlobale);
+    }
+
+    const heroNote = document.getElementById('hero-rating-note');
+    if (heroNote && avis.noteGlobale) {
+        heroNote.textContent = `${avis.noteGlobale}/5`;
+    }
+
+    const heroCount = document.getElementById('hero-rating-count');
+    if (heroCount && avis.nombreAvis) {
+        heroCount.textContent = `${avis.nombreAvis} avis Google`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // CONTACT: Section des avis
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const reviewsTitle = document.getElementById('reviews-title');
+    if (reviewsTitle && avis.textes?.titreSectionContact) {
+        reviewsTitle.textContent = avis.textes.titreSectionContact;
+    }
+
+    const reviewsContainer = document.getElementById('reviews-container');
+    if (reviewsContainer && avis.topAvis && avis.topAvis.length > 0) {
+        reviewsContainer.innerHTML = '';
+
+        avis.topAvis.forEach((review, index) => {
+            const card = document.createElement('div');
+            card.className = 'review-card scroll-reveal';
+
+            // Limiter le commentaire à 150 caractères
+            let commentaire = review.commentaire || '';
+            if (commentaire.length > 150) {
+                commentaire = commentaire.substring(0, 147) + '...';
+            }
+
+            card.innerHTML = `
+                <div class="review-card__header">
+                    <span class="review-card__author">${escapeHtml(review.auteur)}</span>
+                    <div class="review-card__stars">
+                        ${generateStars(review.note)}
+                    </div>
+                </div>
+                <p class="review-card__comment">"${escapeHtml(commentaire)}"</p>
+                <span class="review-card__date">${escapeHtml(review.dateRelative)}</span>
+            `;
+
+            reviewsContainer.appendChild(card);
+
+            // Animation d'apparition progressive
+            setTimeout(() => {
+                card.classList.add('animate-visible');
+            }, 100 * index);
+        });
+    }
+
+    // Bouton "Voir tous les avis"
+    const reviewsBtn = document.getElementById('reviews-btn-all');
+    if (reviewsBtn && avis.lienGoogle) {
+        reviewsBtn.href = avis.lienGoogle;
+    }
+
+    const reviewsBtnText = document.getElementById('reviews-btn-text');
+    if (reviewsBtnText && avis.textes?.boutonVoirTous) {
+        reviewsBtnText.textContent = avis.textes.boutonVoirTous;
+    }
+}
 
 /**
  * Applique la configuration au DOM
@@ -140,13 +263,19 @@ function applyConfig() {
     // ═══════════════════════════════════════════════════════════════════════
     // FOOTER
     // ═══════════════════════════════════════════════════════════════════════
-    
+
     setElement('footer-tagline', 'textContent', `Bar à vins historique d'${CONFIG.contact?.adresse?.ville || 'Annecy'}`);
-    
+
     if (CONFIG.legal) {
         setElement('footer-copyright', 'textContent', `© ${CONFIG.site.annee} ${CONFIG.site.nom}. ${CONFIG.legal.copyright}`);
         setElement('footer-legal', 'textContent', CONFIG.legal.avertissement);
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // AVIS GOOGLE
+    // ═══════════════════════════════════════════════════════════════════════
+
+    applyGoogleReviews();
 }
 
 /**

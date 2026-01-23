@@ -91,7 +91,17 @@
                 <!-- SLOGAN: Modifiable dans config.js > site.slogan -->
                 <span id="hero-slogan">Bar à vins depuis 1987</span>
             </div>
-            
+
+            <!-- AVIS GOOGLE: Modifiable dans config.js > googleAvis -->
+            <a href="#" id="hero-google-rating" class="hero__google-rating animate-fade-in" target="_blank" rel="noopener noreferrer">
+                <div class="hero__google-rating-stars" id="hero-rating-stars">
+                    <!-- Étoiles générées par JavaScript -->
+                </div>
+                <span class="hero__google-rating-note" id="hero-rating-note">4.7/5</span>
+                <span class="hero__google-rating-separator">•</span>
+                <span class="hero__google-rating-count" id="hero-rating-count">238 avis Google</span>
+            </a>
+
             <h1 class="hero__title animate-fade-in-up">
                 <!-- TITRE: Modifiable dans config.js > accueil.hero.titreLigne1 & titreLigne2 -->
                 <span class="hero__title-line" id="hero-titre-1">LA CAVE</span>
@@ -289,7 +299,7 @@
                 
                 <!-- CARTE GOOGLE MAPS: Modifiable dans config.js > contact.googleMapsEmbed -->
                 <div class="contact-map scroll-reveal">
-                    <iframe 
+                    <iframe
                         id="contact-map"
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2779.5!2d6.126!3d45.899!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478b8ff85e945555%3A0x4d3c0a3a1d3c0a3a!2s8%20Rue%20du%20P%C3%A2quier%2C%2074000%20Annecy!5e0!3m2!1sfr!2sfr!4v1705000000000!5m2!1sfr!2sfr"
                         width="100%"
@@ -300,6 +310,23 @@
                         referrerpolicy="no-referrer-when-downgrade"
                         title="La Cave Annecy - Google Maps">
                     </iframe>
+                </div>
+            </div>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 AVIS GOOGLE
+                 Modifiables dans config.js > googleAvis
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <div class="reviews-section scroll-reveal">
+                <h3 class="reviews-section__title" id="reviews-title">Ce que nos clients disent</h3>
+                <div class="reviews-grid" id="reviews-container">
+                    <!-- Les avis seront générés par JavaScript depuis config.js -->
+                </div>
+                <div class="reviews-cta">
+                    <a id="reviews-btn-all" href="#" target="_blank" rel="noopener noreferrer" class="btn btn--secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        <span id="reviews-btn-text">Voir tous les avis</span>
+                    </a>
                 </div>
             </div>
         </div>
