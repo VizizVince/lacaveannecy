@@ -336,21 +336,18 @@ function applyGoogleReviewsData(data) {
 
 /**
  * Génère les étoiles HTML pour une note donnée (sur 5)
+ * Arrondit à l'entier le plus proche (pas de demi-étoiles)
  */
 function generateStars(rating, cssClass = '') {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+    // Arrondir à l'entier le plus proche (4.3 → 4, 4.7 → 5)
+    const roundedRating = Math.round(rating);
+    const fullStars = Math.min(roundedRating, 5); // Max 5 étoiles
+    const emptyStars = 5 - fullStars;
 
     let html = '';
 
     // Étoiles pleines
     for (let i = 0; i < fullStars; i++) {
-        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-    }
-
-    // Demi-étoile (optionnel, affichée comme étoile pleine pour simplifier)
-    if (hasHalfStar) {
         html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
     }
 

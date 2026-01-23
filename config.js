@@ -520,7 +520,7 @@ const CONFIG = {
         },
 
         // Lien vers la page Google Business
-        lienGoogle: "https://share.google/yJc5yZshOdq2ugHs4",
+        lienGoogle: "https://share.google/b1pSe1WvUjmONMveC",
 
         // Textes de la section avis
         textes: {
