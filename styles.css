@@ -1387,6 +1387,7 @@ button {
     .menu-section__title {
         font-size: var(--size-xl);
     }
+}
 
    /* ========================================
    RESERVATION BANNER
@@ -1403,7 +1404,7 @@ button {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-top: -20px
+    margin-top: -7px;
     margin-bottom: var(--space-xl);
     box-shadow: 0 4px 20px rgba(198, 115, 65, 0.4);
 }
