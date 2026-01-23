@@ -57,35 +57,44 @@ const CONFIG = {
     // ═══════════════════════════════════════════════════════════════════════
     // SECTION 4: IMAGES
     // ═══════════════════════════════════════════════════════════════════════
+    //
+    // GALERIE: Placez vos images dans le dossier ./images/ avec les noms:
+    //   galerie1.jpg, galerie2.jpg, galerie3.jpg, galerie4.jpg, galerie5.jpg, galerie6.jpg
+    //
+    // Le site détecte automatiquement les images présentes et adapte l'affichage.
+    // Si vous avez 3 images, seules 3 seront affichées avec un layout adapté.
+    // Maximum: 6 images
+    //
+    // ═══════════════════════════════════════════════════════════════════════
 
     images: {
         logo: "./images/logo.jpg",
         heroBackground: "./images/hero-bg.jpg",
+
+        // Configuration de la galerie
         galerie: {
-            image1: {
-                src: "./images/galerie-1.jpg",
-                alt: "Sélection de vins",
-                tag: "Vins",
-                titre: "Notre Sélection",
-                type: "portrait"
-            },
-            image2: {
-                src: "./images/galerie-2.jpg",
-                alt: "Plat du jour",
-                tag: "Cuisine",
-                titre: "Nos Plats",
-                type: "paysage"
-            },
-            image3: {
-                src: "./images/galerie-3.jpg",
-                alt: "Ambiance du bar",
-                tag: "Ambiance",
-                titre: "Notre Univers",
-                type: "paysage"
-            },
-            image4: null,
-            image5: null,
-            image6: null
+            // Dossier contenant les images
+            dossier: "./images/",
+
+            // Préfixe des fichiers (galerie1.jpg, galerie2.jpg, etc.)
+            prefixe: "galerie",
+
+            // Extension des fichiers
+            extension: ".jpg",
+
+            // Nombre maximum d'images à chercher (1 à 6)
+            maxImages: 6,
+
+            // Métadonnées optionnelles pour chaque image (tag et titre affichés au survol)
+            // Si non défini, les valeurs par défaut seront utilisées
+            metadata: {
+                1: { tag: "Vins", titre: "Notre Sélection" },
+                2: { tag: "Cuisine", titre: "Nos Plats" },
+                3: { tag: "Ambiance", titre: "Notre Univers" },
+                4: { tag: "Moments", titre: "Nos Soirées" },
+                5: { tag: "Terroir", titre: "Nos Producteurs" },
+                6: { tag: "Passion", titre: "Notre Équipe" }
+            }
         }
     },
 

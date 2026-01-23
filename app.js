@@ -279,58 +279,133 @@ function applyConfig() {
 }
 
 /**
- * Génère la galerie d'images dynamiquement depuis la configuration
- * Supporte jusqu'à 6 images avec différents formats (portrait/paysage)
+ * Génère la galerie d'images dynamiquement
+ * Détecte automatiquement les images disponibles (galerie1.jpg à galerie6.jpg)
+ * et adapte l'affichage selon le nombre d'images trouvées
  */
 function generateGallery() {
     const container = document.getElementById('gallery-container');
     if (!container || !CONFIG.images || !CONFIG.images.galerie) return;
-    
-    container.innerHTML = '';
+
     const galerie = CONFIG.images.galerie;
-    
-    // Parcourir les images 1 à 6
-    const imageKeys = ['image1', 'image2', 'image3', 'image4', 'image5', 'image6'];
-    let imageCount = 0;
-    
-    imageKeys.forEach((key, index) => {
-        const img = galerie[key];
-        if (!img || !img.src) return; // Ignorer les images null ou sans src
-        
-        imageCount++;
-        
-        // Déterminer les classes CSS
-        let itemClasses = 'gallery-item scroll-reveal';
-        if (img.type === 'portrait') {
-            itemClasses += ' gallery-item--portrait';
+    const dossier = galerie.dossier || './images/';
+    const prefixe = galerie.prefixe || 'galerie';
+    const extension = galerie.extension || '.jpg';
+    const maxImages = Math.min(galerie.maxImages || 6, 6);
+    const metadata = galerie.metadata || {};
+
+    // Afficher un état de chargement
+    container.innerHTML = '<div class="gallery-loading">Chargement de la galerie...</div>';
+
+    // Tableau pour stocker les images valides
+    const validImages = [];
+    let loadedCount = 0;
+
+    // Fonction pour vérifier si une image existe
+    function checkImage(index) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const src = `${dossier}${prefixe}${index}${extension}`;
+
+            img.onload = function() {
+                // L'image existe et est chargée
+                const meta = metadata[index] || {};
+                validImages.push({
+                    index: index,
+                    src: src,
+                    tag: meta.tag || 'La Cave',
+                    titre: meta.titre || `Image ${index}`
+                });
+                resolve(true);
+            };
+
+            img.onerror = function() {
+                // L'image n'existe pas
+                resolve(false);
+            };
+
+            img.src = src;
+        });
+    }
+
+    // Vérifier toutes les images de 1 à maxImages
+    const promises = [];
+    for (let i = 1; i <= maxImages; i++) {
+        promises.push(checkImage(i));
+    }
+
+    // Une fois toutes les vérifications terminées, afficher la galerie
+    Promise.all(promises).then(() => {
+        // Trier les images par index
+        validImages.sort((a, b) => a.index - b.index);
+
+        // Vider le conteneur
+        container.innerHTML = '';
+
+        if (validImages.length === 0) {
+            container.innerHTML = '<p class="gallery-empty">Aucune image disponible</p>';
+            return;
         }
-        
-        // Créer l'élément
-        const item = document.createElement('div');
-        item.className = itemClasses;
-        item.innerHTML = `
-            <img src="${img.src}" alt="${img.alt || ''}" loading="lazy">
-            <div class="gallery-item__overlay">
-                <span class="gallery-item__tag">${img.tag || ''}</span>
-                <h3 class="gallery-item__title">${img.titre || ''}</h3>
-            </div>
-        `;
-        
-        container.appendChild(item);
-        
-        // Déclencher l'animation avec un délai
-        setTimeout(() => {
-            item.classList.add('animate-visible');
-        }, 100 * index);
+
+        // Créer les éléments de la galerie
+        validImages.forEach((imgData, displayIndex) => {
+            const item = document.createElement('div');
+            item.className = 'gallery-item scroll-reveal';
+
+            item.innerHTML = `
+                <img src="${imgData.src}" alt="${imgData.titre}" loading="lazy">
+                <div class="gallery-item__overlay">
+                    <span class="gallery-item__tag">${imgData.tag}</span>
+                    <h3 class="gallery-item__title">${imgData.titre}</h3>
+                </div>
+            `;
+
+            container.appendChild(item);
+
+            // Animation d'apparition progressive
+            setTimeout(() => {
+                item.classList.add('animate-visible');
+            }, 100 * displayIndex);
+        });
+
+        // Appliquer le layout adaptatif selon le nombre d'images
+        applyGalleryLayout(container, validImages.length);
     });
-    
-    // Ajuster la grille selon le nombre d'images
-    if (imageCount <= 3) {
-        container.style.gridTemplateColumns = 'repeat(3, 1fr)';
-    } else if (imageCount <= 4) {
-        container.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    } else {
-        container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+}
+
+/**
+ * Applique le layout de grille adaptatif selon le nombre d'images
+ */
+function applyGalleryLayout(container, count) {
+    // Retirer les classes de layout précédentes
+    container.classList.remove('gallery--1', 'gallery--2', 'gallery--3', 'gallery--4', 'gallery--5', 'gallery--6');
+
+    // Ajouter la classe correspondante
+    container.classList.add(`gallery--${count}`);
+
+    // Définir le layout de grille selon le nombre d'images
+    switch (count) {
+        case 1:
+            container.style.gridTemplateColumns = '1fr';
+            break;
+        case 2:
+            container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            break;
+        case 3:
+            container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            break;
+        case 4:
+            container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            break;
+        case 5:
+            // 3 colonnes, la dernière image centrée
+            container.style.gridTemplateColumns = 'repeat(6, 1fr)';
+            break;
+        case 6:
+            container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            break;
+        default:
+            container.style.gridTemplateColumns = 'repeat(3, 1fr)';
     }
 }
 

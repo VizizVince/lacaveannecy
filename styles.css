@@ -750,6 +750,83 @@ a {
     margin-top: var(--space-2xl);
 }
 
+/* État de chargement de la galerie */
+.gallery-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--space-3xl);
+    font-family: var(--font-script);
+    font-style: italic;
+    color: var(--color-text-light);
+}
+
+.gallery-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--color-text-light);
+}
+
+/* ========================================
+   GALLERY - LAYOUTS ADAPTATIFS
+   Grilles optimisées selon le nombre d'images (1 à 6)
+======================================== */
+
+/* 1 image - Pleine largeur, plus grande */
+.gallery-grid.gallery--1 {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.gallery-grid.gallery--1 .gallery-item {
+    aspect-ratio: 16/9;
+}
+
+/* 2 images - Côte à côte */
+.gallery-grid.gallery--2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.gallery-grid.gallery--2 .gallery-item {
+    aspect-ratio: 4/3;
+}
+
+/* 3 images - 3 colonnes égales */
+.gallery-grid.gallery--3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* 4 images - Grille 2x2 */
+.gallery-grid.gallery--4 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+/* 5 images - 3 en haut, 2 centrées en bas */
+.gallery-grid.gallery--5 {
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.gallery-grid.gallery--5 .gallery-item:nth-child(1),
+.gallery-grid.gallery--5 .gallery-item:nth-child(2),
+.gallery-grid.gallery--5 .gallery-item:nth-child(3) {
+    grid-column: span 2;
+}
+
+.gallery-grid.gallery--5 .gallery-item:nth-child(4) {
+    grid-column: 2 / span 2;
+}
+
+.gallery-grid.gallery--5 .gallery-item:nth-child(5) {
+    grid-column: 4 / span 2;
+}
+
+/* 6 images - Grille 3x2 */
+.gallery-grid.gallery--6 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
 /* ========================================
    AGENDA SECTION
 ======================================== */
@@ -1500,10 +1577,32 @@ a {
         color: var(--color-secondary);
     }
     
+    /* Gallery mobile - 2 colonnes par défaut */
     .gallery-grid {
-        grid-template-columns: 1fr 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         grid-template-rows: auto;
         gap: var(--space-md);
+    }
+
+    /* Reset des layouts spéciaux pour mobile */
+    .gallery-grid.gallery--5 .gallery-item:nth-child(1),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(2),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(3),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(4),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(5) {
+        grid-column: span 1;
+    }
+
+    /* 5 images sur mobile: 2+2+1 centré */
+    .gallery-grid.gallery--5 .gallery-item:nth-child(5) {
+        grid-column: 1 / -1;
+        max-width: 60%;
+        margin: 0 auto;
+    }
+
+    /* 1 image: pleine largeur */
+    .gallery-grid.gallery--1 {
+        grid-template-columns: 1fr !important;
     }
 
     .gallery-item,
@@ -1755,8 +1854,25 @@ a {
     }
 
     /* Gallery 1 colonne sur très petit écran */
-    .gallery-grid {
+    .gallery-grid,
+    .gallery-grid.gallery--1,
+    .gallery-grid.gallery--2,
+    .gallery-grid.gallery--3,
+    .gallery-grid.gallery--4,
+    .gallery-grid.gallery--5,
+    .gallery-grid.gallery--6 {
         grid-template-columns: 1fr !important;
+    }
+
+    /* Reset tous les spans pour mobile */
+    .gallery-grid.gallery--5 .gallery-item:nth-child(1),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(2),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(3),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(4),
+    .gallery-grid.gallery--5 .gallery-item:nth-child(5) {
+        grid-column: span 1;
+        max-width: 100%;
+        margin: 0;
     }
 
     .gallery-item {
