@@ -3,31 +3,41 @@
  * PAGE CARTE - LA CAVE ANNECY
  * ═══════════════════════════════════════════════════════════════════════════
  * 
- * Ce fichier gère la page de la carte des vins.
- * Les données sont chargées depuis config.js
+ * Version 2.0 - Chargement dynamique depuis Google Sheets
+ * 
+ * Fonctionnalités :
+ * - Charge les vins depuis Google Sheets via SheetsLoader
+ * - Génère les filtres dynamiquement
+ * - Affiche les prix verre et bouteille
+ * - Gère le millésime et la description
+ * - Cache localStorage 1h, refresh via ?refresh=1
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 /**
- * Applique la configuration de la page carte
+ * État global de la page
  */
-function applyCarteConfig() {
+const CarteState = {
+    categories: [],
+    activeFilter: 'all',
+    isLoading: true,
+    error: null
+};
+
+/**
+ * Applique la configuration de base (logo, contact, footer)
+ */
+function applyBaseConfig() {
     if (typeof CONFIG === 'undefined') {
         console.error('Configuration non trouvée. Vérifiez que config.js est chargé.');
         return;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // IMAGES
-    // ═══════════════════════════════════════════════════════════════════════
-    
+    // Images
     setElement('header-logo', 'src', CONFIG.images.logo);
     setElement('footer-logo', 'src', CONFIG.images.logo);
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // TEXTES DE LA PAGE
-    // ═══════════════════════════════════════════════════════════════════════
-    
+    // Textes de la page
     if (CONFIG.carte && CONFIG.carte.page) {
         setElement('carte-badge', 'textContent', CONFIG.carte.page.badge);
         setElement('carte-titre', 'textContent', CONFIG.carte.page.titre);
@@ -39,10 +49,7 @@ function applyCarteConfig() {
         setElement('carte-footer-2', 'textContent', CONFIG.carte.footer.ligne2);
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // CONTACT (liens sociaux)
-    // ═══════════════════════════════════════════════════════════════════════
-    
+    // Contact (liens sociaux)
     if (CONFIG.contact) {
         setElement('social-phone', 'href', CONFIG.contact.telephoneLien);
         setElement('footer-phone', 'href', CONFIG.contact.telephoneLien);
@@ -53,31 +60,97 @@ function applyCarteConfig() {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // FOOTER
-    // ═══════════════════════════════════════════════════════════════════════
-    
+    // Footer
     setElement('footer-tagline', 'textContent', `Bar à vins historique d'${CONFIG.contact?.adresse?.ville || 'Annecy'}`);
     
     if (CONFIG.legal) {
         setElement('footer-copyright', 'textContent', `© ${CONFIG.site.annee} ${CONFIG.site.nom}. ${CONFIG.legal.copyright}`);
         setElement('footer-legal', 'textContent', CONFIG.legal.avertissement);
     }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // GÉNÉRER LES FILTRES ET LE MENU
-    // ═══════════════════════════════════════════════════════════════════════
-    
-    generateFilters();
-    generateMenu();
 }
 
 /**
- * Génère les onglets de filtre
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CHARGEMENT DES DONNÉES
+ * ═══════════════════════════════════════════════════════════════════════════
  */
-function generateFilters() {
+
+/**
+ * Charge la carte des vins depuis Google Sheets
+ */
+async function loadCarteDesVins() {
+    const container = document.getElementById('menu-container');
+    if (!container) return;
+    
+    // Afficher l'état de chargement
+    renderLoadingState(container);
+    
+    try {
+        // Vérifier la configuration
+        if (!CONFIG.carte || !CONFIG.carte.googleSheets || !CONFIG.carte.googleSheets.id) {
+            throw new Error('Configuration Google Sheets manquante dans config.js');
+        }
+        
+        const config = {
+            googleSheetsId: CONFIG.carte.googleSheets.id,
+            sheetName: CONFIG.carte.googleSheets.sheetName || 'Carte des Vins'
+        };
+        
+        // Charger via SheetsLoader
+        const categories = await SheetsLoader.loadCarteDesVins(config);
+        
+        if (!categories || categories.length === 0) {
+            throw new Error('Aucun vin trouvé dans le Google Sheets');
+        }
+        
+        CarteState.categories = categories;
+        CarteState.isLoading = false;
+        CarteState.error = null;
+        
+        // Générer l'interface
+        generateFilters(categories);
+        renderMenu(categories);
+        
+        // Mettre à jour le badge avec le nombre de références
+        updateWineCount(categories);
+        
+    } catch (error) {
+        console.error('Erreur chargement carte:', error);
+        CarteState.error = error.message;
+        CarteState.isLoading = false;
+        renderErrorState(container, error.message);
+    }
+}
+
+/**
+ * Compte le nombre total de vins
+ */
+function updateWineCount(categories) {
+    let count = 0;
+    categories.forEach(cat => {
+        Object.values(cat.sousCategories).forEach(vins => {
+            count += vins.length;
+        });
+    });
+    
+    const badge = document.getElementById('carte-badge');
+    if (badge && count > 0) {
+        badge.textContent = `${count} références`;
+    }
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * RENDU DES FILTRES
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * Génère les onglets de filtre depuis les données
+ */
+function generateFilters(categories) {
     const container = document.getElementById('filter-tabs');
-    if (!container || !CONFIG.carte || !CONFIG.carte.regions) return;
+    if (!container) return;
     
     // Onglet "Tout"
     let html = `
@@ -87,12 +160,18 @@ function generateFilters() {
         </button>
     `;
     
-    // Onglets des régions
-    CONFIG.carte.regions.forEach(region => {
+    // Onglets des catégories
+    categories.forEach(cat => {
+        const id = slugify(cat.nom);
+        const shortName = cat.nom
+            .replace('Vallée de la ', '')
+            .replace('Vallée du ', '')
+            .replace('Les ', '');
+        
         html += `
-            <button class="filter-tab" data-filter="${region.id}">
-                <span>${region.emoji}</span>
-                <span>${region.nom.replace('Vallée de la ', '').replace('Vallée du ', '')}</span>
+            <button class="filter-tab" data-filter="${id}">
+                <span>${cat.emoji}</span>
+                <span>${shortName}</span>
             </button>
         `;
     });
@@ -104,97 +183,44 @@ function generateFilters() {
 }
 
 /**
- * Génère les sections du menu
- */
-function generateMenu() {
-    const container = document.getElementById('menu-container');
-    if (!container || !CONFIG.carte || !CONFIG.carte.regions) return;
-    
-    let html = '';
-    
-    CONFIG.carte.regions.forEach(region => {
-        html += `
-            <section class="menu-section" data-category="${region.id}" id="${region.id}">
-                <div class="menu-section__header">
-                    <div class="menu-section__icon">${region.emoji}</div>
-                    <div>
-                        <h2 class="menu-section__title">${region.nom}</h2>
-                        <p class="menu-section__subtitle">${region.sousTitre}</p>
-                    </div>
-                </div>
-                
-                <div class="menu-columns">
-                    ${generateCategories(region.categories)}
-                </div>
-            </section>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-
-/**
- * Génère les catégories d'une région
- */
-function generateCategories(categories) {
-    if (!categories) return '';
-    
-    return categories.map(cat => `
-        <div class="menu-category">
-            <h3 class="menu-category__title">${cat.nom}</h3>
-            <div class="menu-items">
-                ${generateVins(cat.vins)}
-            </div>
-        </div>
-    `).join('');
-}
-
-/**
- * Génère les items de vin
- */
-function generateVins(vins) {
-    if (!vins) return '';
-    
-    return vins.map(vin => `
-        <div class="menu-item">
-            <div class="menu-item__info">
-                <span class="menu-item__name">${vin.nom}</span>
-                <span class="menu-item__domain">${vin.domaine}</span>
-            </div>
-            <span class="menu-item__price">${vin.prix}</span>
-        </div>
-    `).join('');
-}
-
-/**
  * Configure les événements de filtre
  */
 function setupFilterEvents() {
     const filterTabs = document.querySelectorAll('.filter-tab');
-    const menuSections = document.querySelectorAll('.menu-section');
     
     filterTabs.forEach(tab => {
         tab.addEventListener('click', function() {
+            const filter = tab.dataset.filter;
+            
             // Mettre à jour l'onglet actif
             filterTabs.forEach(t => t.classList.remove('filter-tab--active'));
             tab.classList.add('filter-tab--active');
             
-            const filter = tab.dataset.filter;
+            CarteState.activeFilter = filter;
             
             // Filtrer les sections
+            const menuSections = document.querySelectorAll('.menu-section');
             menuSections.forEach(section => {
                 if (filter === 'all' || section.dataset.category === filter) {
                     section.style.display = '';
+                    section.classList.add('animate-visible');
                 } else {
                     section.style.display = 'none';
                 }
             });
             
-            // Scroll vers la première section visible
+            // Scroll vers la première section visible (sauf si "Tout")
             if (filter !== 'all') {
                 const firstVisible = document.querySelector(`.menu-section[data-category="${filter}"]`);
                 if (firstVisible) {
-                    firstVisible.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const headerOffset = 160; // Header + filter nav
+                    const elementPosition = firstVisible.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
                 }
             }
         });
@@ -202,7 +228,240 @@ function setupFilterEvents() {
 }
 
 /**
- * Utilitaire pour définir un élément de manière sécurisée
+ * ═══════════════════════════════════════════════════════════════════════════
+ * RENDU DU MENU
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * Génère le HTML du menu complet
+ */
+function renderMenu(categories) {
+    const container = document.getElementById('menu-container');
+    if (!container) return;
+    
+    let html = '';
+    
+    categories.forEach((cat, index) => {
+        const id = slugify(cat.nom);
+        
+        html += `
+            <section class="menu-section scroll-reveal" data-category="${id}" id="${id}">
+                <div class="menu-section__header">
+                    <div class="menu-section__icon">${cat.emoji}</div>
+                    <div>
+                        <h2 class="menu-section__title">${escapeHtml(cat.nom)}</h2>
+                        <p class="menu-section__subtitle">${generateSubtitle(cat)}</p>
+                    </div>
+                </div>
+                
+                <div class="menu-columns">
+                    ${renderSousCategories(cat.sousCategories)}
+                </div>
+            </section>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Déclencher les animations
+    setTimeout(() => {
+        document.querySelectorAll('.menu-section').forEach((section, i) => {
+            setTimeout(() => {
+                section.classList.add('animate-visible');
+            }, i * 100);
+        });
+    }, 100);
+}
+
+/**
+ * Génère le sous-titre d'une catégorie (liste des sous-catégories)
+ */
+function generateSubtitle(category) {
+    const sousCats = Object.keys(category.sousCategories);
+    if (sousCats.length === 1 && sousCats[0] === 'Général') {
+        return '';
+    }
+    return sousCats.filter(s => s !== 'Général').join(' • ');
+}
+
+/**
+ * Génère le HTML des sous-catégories
+ */
+function renderSousCategories(sousCategories) {
+    return Object.entries(sousCategories).map(([nom, vins]) => `
+        <div class="menu-category">
+            ${nom !== 'Général' ? `<h3 class="menu-category__title">${escapeHtml(nom)}</h3>` : ''}
+            <div class="menu-items">
+                ${renderVins(vins)}
+            </div>
+        </div>
+    `).join('');
+}
+
+/**
+ * Génère le HTML des vins
+ */
+function renderVins(vins) {
+    return vins.map(vin => {
+        // Construire le nom avec millésime si présent
+        let nomComplet = escapeHtml(vin.nom);
+        if (vin.millesime) {
+            nomComplet += ` <span class="menu-item__millesime">${vin.millesime}</span>`;
+        }
+        
+        // Construire la ligne du domaine avec description si présente
+        let domaineText = escapeHtml(vin.domaine);
+        if (vin.description) {
+            domaineText += ` — ${escapeHtml(vin.description)}`;
+        }
+        
+        // Construire les prix
+        let prixHtml = '';
+        if (vin.prixVerre && vin.prixBouteille) {
+            prixHtml = `
+                <div class="menu-item__prices">
+                    <span class="menu-item__price menu-item__price--verre" title="Prix au verre">${vin.prixVerre}</span>
+                    <span class="menu-item__price-separator">/</span>
+                    <span class="menu-item__price menu-item__price--bouteille" title="Prix bouteille">${vin.prixBouteille}</span>
+                </div>
+            `;
+        } else if (vin.prixBouteille) {
+            prixHtml = `<span class="menu-item__price">${vin.prixBouteille}</span>`;
+        } else if (vin.prixVerre) {
+            prixHtml = `<span class="menu-item__price menu-item__price--verre">${vin.prixVerre}</span>`;
+        }
+        
+        return `
+            <div class="menu-item">
+                <div class="menu-item__info">
+                    <span class="menu-item__name">${nomComplet}</span>
+                    <span class="menu-item__domain">${domaineText}</span>
+                </div>
+                ${prixHtml}
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ÉTATS DE CHARGEMENT ET ERREUR
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * Affiche l'état de chargement
+ */
+function renderLoadingState(container) {
+    container.innerHTML = `
+        <div class="carte-loading">
+            <div class="carte-loading__spinner"></div>
+            <p class="carte-loading__text">Chargement de la carte des vins...</p>
+            <p class="carte-loading__subtext">Connexion au serveur en cours</p>
+        </div>
+    `;
+}
+
+/**
+ * Affiche l'état d'erreur avec fallback vers config.js
+ */
+function renderErrorState(container, message) {
+    // Essayer de charger depuis config.js en fallback
+    if (CONFIG.carte && CONFIG.carte.regions && CONFIG.carte.regions.length > 0) {
+        console.warn('[Carte] Fallback vers config.js');
+        renderMenuFromConfig();
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="carte-error">
+            <div class="carte-error__icon">⚠️</div>
+            <h3 class="carte-error__title">Impossible de charger la carte</h3>
+            <p class="carte-error__message">${escapeHtml(message)}</p>
+            <div class="carte-error__actions">
+                <button class="btn btn--primary btn--small" onclick="location.reload()">
+                    Réessayer
+                </button>
+                <button class="btn btn--secondary btn--small" onclick="loadCarteDesVins()">
+                    Recharger les données
+                </button>
+            </div>
+            <p class="carte-error__hint">
+                Astuce : Ajoutez <code>?refresh=1</code> à l'URL pour forcer le rechargement
+            </p>
+        </div>
+    `;
+}
+
+/**
+ * Fallback : charge depuis config.js (ancienne méthode)
+ */
+function renderMenuFromConfig() {
+    if (!CONFIG.carte || !CONFIG.carte.regions) return;
+    
+    // Convertir le format config.js vers le format SheetsLoader
+    const categories = CONFIG.carte.regions.map(region => ({
+        nom: region.nom,
+        emoji: region.emoji,
+        sousCategories: region.categories.reduce((acc, cat) => {
+            acc[cat.nom] = cat.vins.map(v => ({
+                nom: v.nom,
+                domaine: v.domaine,
+                millesime: '',
+                description: '',
+                prixVerre: null,
+                prixBouteille: v.prix
+            }));
+            return acc;
+        }, {})
+    }));
+    
+    CarteState.categories = categories;
+    generateFilters(categories);
+    renderMenu(categories);
+    
+    // Afficher un avertissement
+    const container = document.getElementById('menu-container');
+    const warning = document.createElement('div');
+    warning.className = 'carte-warning';
+    warning.innerHTML = `
+        <p>⚠️ Carte chargée depuis la configuration locale. 
+        La connexion Google Sheets a échoué.</p>
+    `;
+    container.insertBefore(warning, container.firstChild);
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * UTILITAIRES
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * Convertit une chaîne en slug URL-safe
+ */
+function slugify(text) {
+    return text
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Échappe les caractères HTML
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+/**
+ * Définit un attribut ou propriété d'un élément
  */
 function setElement(id, property, value) {
     const el = document.getElementById(id);
@@ -215,13 +474,18 @@ function setElement(id, property, value) {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// INITIALISATION
-// ═══════════════════════════════════════════════════════════════════════════
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * INITIALISATION
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Appliquer la configuration
-    applyCarteConfig();
+    // Appliquer la configuration de base
+    applyBaseConfig();
+    
+    // Charger la carte des vins depuis Google Sheets
+    loadCarteDesVins();
     
     // ═══════════════════════════════════════════════════════════════════════
     // HEADER SCROLL EFFECT
@@ -237,9 +501,9 @@ document.addEventListener('DOMContentLoaded', function() {
             header.classList.remove('header--scrolled');
         }
         
-        if (window.pageYOffset > 200) {
+        if (filterNav && window.pageYOffset > 200) {
             filterNav.classList.add('filter-nav--sticky');
-        } else {
+        } else if (filterNav) {
             filterNav.classList.remove('filter-nav--sticky');
         }
     });
@@ -268,4 +532,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // RACCOURCI CLAVIER POUR REFRESH (Ctrl+Shift+R ou Cmd+Shift+R)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+            e.preventDefault();
+            SheetsLoader.clearCache();
+            location.reload();
+        }
+    });
 });
