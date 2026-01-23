@@ -88,6 +88,13 @@ async function loadGoogleReviewsFromSheets() {
 
 /**
  * Parse les données brutes du Google Sheets
+ * Structure attendue:
+ * - A2: Note globale (ex: 4,7)
+ * - A5: Nombre d'avis (ex: 638)
+ * - C2:C5: Nom de la personne
+ * - D2:D5: Note donnée /5
+ * - E2:E5: Commentaire
+ * - F2:F5: Date de publication
  */
 function parseGoogleReviewsData(rows) {
     const result = {
@@ -96,12 +103,18 @@ function parseGoogleReviewsData(rows) {
         topAvis: []
     };
 
+    console.log('[Avis Google] Nombre de lignes reçues:', rows.length);
+
     // Fonction utilitaire pour obtenir la valeur d'une cellule
     function getCellValue(row, colIndex) {
-        if (!row || !row.c || !row.c[colIndex]) return null;
+        if (!row || !row.c) return null;
+        // La cellule peut être null si elle est vide
+        if (!row.c[colIndex]) return null;
         const cell = row.c[colIndex];
-        // Préférer la valeur formatée si disponible, sinon la valeur brute
-        return cell.f !== undefined ? cell.f : cell.v;
+        // Préférer la valeur brute (v), puis formatée (f)
+        if (cell.v !== undefined && cell.v !== null) return cell.v;
+        if (cell.f !== undefined && cell.f !== null) return cell.f;
+        return null;
     }
 
     // Fonction pour parser un nombre (gère la virgule comme séparateur décimal)
@@ -175,44 +188,59 @@ function parseGoogleReviewsData(rows) {
         return `il y a ${Math.floor(diffDays / 365)} ans`;
     }
 
-    // Row 0 = ligne 1 dans Sheets (en-têtes probablement)
-    // Row 1 = ligne 2 dans Sheets (A2 = note globale)
-    // ...
-    // Row 4 = ligne 5 dans Sheets (A5 = nombre d'avis)
+    // ══════════════════════════════════════════════════════════════════════
+    // EXTRACTION DES DONNÉES
+    // Structure: Row 0 = ligne 1, Row 1 = ligne 2, etc.
+    // ══════════════════════════════════════════════════════════════════════
 
     // Note globale (A2 = row index 1, col index 0)
     if (rows[1]) {
-        result.noteGlobale = parseNumber(getCellValue(rows[1], 0));
+        const noteVal = getCellValue(rows[1], 0);
+        result.noteGlobale = parseNumber(noteVal);
+        console.log('[Avis Google] Note globale (A2):', noteVal, '→', result.noteGlobale);
     }
 
-    // Nombre d'avis (A5 = row index 4, col index 0)
-    if (rows[4]) {
-        result.nombreAvis = parseNumber(getCellValue(rows[4], 0));
-        // S'assurer que c'est un entier
-        result.nombreAvis = Math.round(result.nombreAvis);
+    // Nombre d'avis - chercher dans toutes les lignes pour trouver un nombre > 10
+    // Car le nombre d'avis peut être en A5 (row index 4) ou ailleurs
+    for (let i = 0; i < rows.length; i++) {
+        const cellValue = getCellValue(rows[i], 0);
+        const numValue = parseNumber(cellValue);
+
+        // Si c'est un nombre > 10 (pas une note sur 5), c'est probablement le nombre d'avis
+        if (numValue > 10) {
+            result.nombreAvis = Math.round(numValue);
+            console.log('[Avis Google] Nombre d\'avis trouvé à la ligne', i + 1, ':', cellValue, '→', result.nombreAvis);
+            break;
+        }
     }
 
-    // Avis individuels (lignes 2 à 5, colonnes C, D, E, F = indices 2, 3, 4, 5)
-    // Row indices 1, 2, 3, 4 pour les lignes 2, 3, 4, 5
-    for (let i = 1; i <= 4; i++) {
-        if (!rows[i]) continue;
+    // Avis individuels - parcourir toutes les lignes sauf la première (en-têtes)
+    // et chercher les lignes avec un nom en colonne C
+    for (let i = 1; i < rows.length; i++) {
+        if (!rows[i] || !rows[i].c) continue;
 
-        const nom = getCellValue(rows[i], 2); // Colonne C
-        const note = parseNumber(getCellValue(rows[i], 3)); // Colonne D
-        const commentaire = getCellValue(rows[i], 4); // Colonne E
-        const dateValue = getCellValue(rows[i], 5); // Colonne F
+        const nom = getCellValue(rows[i], 2); // Colonne C (index 2)
+        const note = parseNumber(getCellValue(rows[i], 3)); // Colonne D (index 3)
+        const commentaire = getCellValue(rows[i], 4); // Colonne E (index 4)
+        const dateValue = getCellValue(rows[i], 5); // Colonne F (index 5)
+
+        console.log(`[Avis Google] Ligne ${i + 1}: nom="${nom}", note=${note}, commentaire="${commentaire ? commentaire.substring(0, 30) + '...' : ''}", date=${dateValue}`);
 
         // Ne pas ajouter si pas de nom ou pas de commentaire
-        if (!nom || !commentaire) continue;
+        if (!nom || !commentaire) {
+            console.log(`[Avis Google] Ligne ${i + 1} ignorée (nom ou commentaire manquant)`);
+            continue;
+        }
 
         result.topAvis.push({
             auteur: String(nom).trim(),
-            note: note,
+            note: note || 5, // Défaut à 5 si pas de note
             commentaire: String(commentaire).trim(),
             dateRelative: parseRelativeDate(dateValue)
         });
     }
 
+    console.log('[Avis Google] Résultat final:', result);
     return result;
 }
 
