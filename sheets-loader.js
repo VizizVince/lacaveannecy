@@ -1,0 +1,484 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * SHEETS LOADER - LA CAVE ANNECY
+ * ═══════════════════════════════════════════════════════════════════════════
+ * 
+ * Module pour charger les données depuis Google Sheets
+ * Utilisé pour l'agenda et la carte des vins
+ * 
+ * Fonctionnalités :
+ * - Fetch des données Google Sheets (format JSONP)
+ * - Cache localStorage avec expiration
+ * - Paramètre URL ?refresh=1 pour forcer la mise à jour
+ * - Groupement des données par catégorie
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+const SheetsLoader = (function() {
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // CONFIGURATION
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    const CACHE_DURATION = 60 * 60 * 1000; // 1 heure en millisecondes
+    const CACHE_PREFIX = 'lacave_sheets_';
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // UTILITAIRES CACHE
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    /**
+     * Vérifie si on doit forcer le rafraîchissement via URL
+     */
+    function shouldForceRefresh() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('refresh') === '1';
+    }
+    
+    /**
+     * Récupère les données du cache si valides
+     */
+    function getFromCache(key) {
+        if (shouldForceRefresh()) {
+            console.log('[SheetsLoader] Refresh forcé via URL');
+            return null;
+        }
+        
+        try {
+            const cached = localStorage.getItem(CACHE_PREFIX + key);
+            if (!cached) return null;
+            
+            const { data, timestamp } = JSON.parse(cached);
+            const age = Date.now() - timestamp;
+            
+            if (age < CACHE_DURATION) {
+                console.log(`[SheetsLoader] Cache valide pour "${key}" (âge: ${Math.round(age/1000/60)}min)`);
+                return data;
+            }
+            
+            console.log(`[SheetsLoader] Cache expiré pour "${key}"`);
+            return null;
+        } catch (e) {
+            console.warn('[SheetsLoader] Erreur lecture cache:', e);
+            return null;
+        }
+    }
+    
+    /**
+     * Sauvegarde les données dans le cache
+     */
+    function saveToCache(key, data) {
+        try {
+            const cacheData = {
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(cacheData));
+            console.log(`[SheetsLoader] Données mises en cache pour "${key}"`);
+        } catch (e) {
+            console.warn('[SheetsLoader] Erreur écriture cache:', e);
+        }
+    }
+    
+    /**
+     * Vide le cache pour une clé spécifique ou tout le cache
+     */
+    function clearCache(key = null) {
+        if (key) {
+            localStorage.removeItem(CACHE_PREFIX + key);
+        } else {
+            Object.keys(localStorage)
+                .filter(k => k.startsWith(CACHE_PREFIX))
+                .forEach(k => localStorage.removeItem(k));
+        }
+        console.log('[SheetsLoader] Cache vidé');
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // FETCH GOOGLE SHEETS
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    /**
+     * Récupère les données brutes d'un Google Sheets
+     * @param {string} sheetId - ID du Google Sheets
+     * @param {string} sheetName - Nom de l'onglet
+     * @returns {Promise<Array>} - Tableau des lignes avec colonnes nommées
+     */
+    async function fetchSheet(sheetId, sheetName) {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+        
+        console.log(`[SheetsLoader] Fetch: ${sheetName}`);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        
+        // Google renvoie du JSONP, on extrait le JSON
+        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+        
+        if (!jsonMatch || !jsonMatch[1]) {
+            throw new Error('Format de réponse Google Sheets invalide');
+        }
+        
+        const data = JSON.parse(jsonMatch[1]);
+        
+        if (!data.table) {
+            throw new Error('Pas de données dans la réponse');
+        }
+        
+        return parseSheetData(data.table);
+    }
+    
+    /**
+     * Parse les données du tableau Google Sheets
+     * @param {Object} table - Objet table de la réponse Google
+     * @returns {Array} - Tableau d'objets avec les colonnes comme clés
+     */
+    function parseSheetData(table) {
+        const { cols, rows } = table;
+        
+        if (!cols || !rows) {
+            return [];
+        }
+        
+        // Extraire les noms de colonnes depuis la première ligne ou les labels
+        const headers = cols.map((col, index) => {
+            // Utiliser le label de la colonne si disponible
+            if (col.label && col.label.trim()) {
+                return normalizeHeader(col.label);
+            }
+            // Sinon utiliser la première ligne comme en-tête
+            if (rows[0] && rows[0].c && rows[0].c[index] && rows[0].c[index].v) {
+                return normalizeHeader(String(rows[0].c[index].v));
+            }
+            return `col_${index}`;
+        });
+        
+        // Déterminer si la première ligne est un en-tête
+        const firstRowIsHeader = headers.every((h, i) => {
+            const firstVal = rows[0]?.c?.[i]?.v;
+            return typeof firstVal === 'string' && isNaN(Number(firstVal));
+        });
+        
+        const startIndex = firstRowIsHeader ? 1 : 0;
+        const result = [];
+        
+        for (let i = startIndex; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row.c) continue;
+            
+            const obj = {};
+            let hasData = false;
+            
+            headers.forEach((header, index) => {
+                const cell = row.c[index];
+                let value = null;
+                
+                if (cell) {
+                    // Gérer les différents types de valeurs
+                    if (cell.v !== null && cell.v !== undefined) {
+                        value = cell.v;
+                        
+                        // Convertir les dates Google
+                        if (typeof value === 'string' && value.startsWith('Date(')) {
+                            const match = value.match(/Date\((\d+),(\d+),(\d+)\)/);
+                            if (match) {
+                                value = new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
+                            }
+                        }
+                    }
+                    // Utiliser la valeur formatée si disponible pour l'affichage
+                    if (cell.f && !value) {
+                        value = cell.f;
+                    }
+                }
+                
+                obj[header] = value;
+                if (value !== null && value !== '') hasData = true;
+            });
+            
+            // N'ajouter que les lignes avec des données
+            if (hasData) {
+                result.push(obj);
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Normalise un nom de colonne en clé JavaScript
+     */
+    function normalizeHeader(header) {
+        return header
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Retirer les accents
+            .replace(/[^a-z0-9]+/g, '_')     // Remplacer les caractères spéciaux
+            .replace(/^_+|_+$/g, '');         // Retirer les underscores au début/fin
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // API PUBLIQUE - CARTE DES VINS
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    /**
+     * Charge la carte des vins depuis Google Sheets
+     * @param {Object} config - Configuration { googleSheetsId, sheetName }
+     * @returns {Promise<Object>} - Données groupées par catégorie
+     */
+    async function loadCarteDesVins(config) {
+        const cacheKey = `carte_${config.googleSheetsId}`;
+        
+        // Vérifier le cache
+        const cached = getFromCache(cacheKey);
+        if (cached) {
+            return cached;
+        }
+        
+        // Charger depuis Google Sheets
+        const rawData = await fetchSheet(config.googleSheetsId, config.sheetName || 'Carte des Vins');
+        
+        // Filtrer les vins disponibles et trier
+        const vinsDisponibles = rawData
+            .filter(vin => {
+                const dispo = vin.disponible;
+                // Accepter TRUE, true, "TRUE", "true", "oui", "OUI", 1, "1"
+                return dispo === true || 
+                       dispo === 'TRUE' || 
+                       dispo === 'true' || 
+                       dispo === 'oui' || 
+                       dispo === 'OUI' ||
+                       dispo === 1 ||
+                       dispo === '1';
+            })
+            .sort((a, b) => {
+                // Trier par ordre, puis par catégorie, puis par sous-catégorie
+                const ordreA = parseInt(a.ordre) || 999;
+                const ordreB = parseInt(b.ordre) || 999;
+                if (ordreA !== ordreB) return ordreA - ordreB;
+                
+                const catA = a.categorie || '';
+                const catB = b.categorie || '';
+                if (catA !== catB) return catA.localeCompare(catB);
+                
+                const sousA = a.sous_categorie || '';
+                const sousB = b.sous_categorie || '';
+                return sousA.localeCompare(sousB);
+            });
+        
+        // Grouper par catégorie et sous-catégorie
+        const grouped = groupByCategory(vinsDisponibles);
+        
+        // Mettre en cache
+        saveToCache(cacheKey, grouped);
+        
+        return grouped;
+    }
+    
+    /**
+     * Groupe les vins par catégorie et sous-catégorie
+     */
+    function groupByCategory(vins) {
+        const categories = {};
+        const categoryOrder = [];
+        
+        vins.forEach(vin => {
+            const cat = vin.categorie || 'Autres';
+            const sousCat = vin.sous_categorie || 'Général';
+            
+            if (!categories[cat]) {
+                categories[cat] = {
+                    nom: cat,
+                    emoji: getCategoryEmoji(cat),
+                    sousCategories: {},
+                    ordre: parseInt(vin.ordre) || 999
+                };
+                categoryOrder.push(cat);
+            }
+            
+            if (!categories[cat].sousCategories[sousCat]) {
+                categories[cat].sousCategories[sousCat] = [];
+            }
+            
+            categories[cat].sousCategories[sousCat].push({
+                nom: vin.nom || '',
+                domaine: vin.domaine || '',
+                millesime: vin.millesime || '',
+                description: vin.description || '',
+                prixVerre: formatPrix(vin.prix_verre),
+                prixBouteille: formatPrix(vin.prix_bouteille),
+                ordre: parseInt(vin.ordre) || 999
+            });
+        });
+        
+        // Convertir en tableau trié
+        const result = categoryOrder
+            .filter((cat, index) => categoryOrder.indexOf(cat) === index) // Unique
+            .map(cat => categories[cat])
+            .sort((a, b) => a.ordre - b.ordre);
+        
+        return result;
+    }
+    
+    /**
+     * Retourne l'emoji correspondant à une catégorie
+     */
+    function getCategoryEmoji(categorie) {
+        const emojis = {
+            'les bulles': '✨',
+            'bulles': '✨',
+            'champagne': '🥂',
+            'savoie': '⛰️',
+            'loire': '🌊',
+            'vallée de la loire': '🌊',
+            'bourgogne': '🍇',
+            'beaujolais': '🍒',
+            'rhône': '☀️',
+            'vallée du rhône': '☀️',
+            'bordeaux': '🏰',
+            'bordelais': '🏰',
+            'sud-ouest': '🌻',
+            'languedoc': '🌿',
+            'provence': '💜',
+            'alsace': '🏔️',
+            'jura': '🧀',
+            'corse': '🏝️',
+            'italie': '🇮🇹',
+            'espagne': '🇪🇸',
+            'autres régions': '🌍',
+            'autres': '🌍',
+            'bières': '🍺',
+            'bières artisanales': '🍺',
+            'spiritueux': '🥃',
+            'soft': '🍋',
+            'sans alcool': '🍹'
+        };
+        
+        const key = categorie.toLowerCase().trim();
+        return emojis[key] || '🍷';
+    }
+    
+    /**
+     * Formate un prix pour l'affichage
+     */
+    function formatPrix(prix) {
+        if (!prix && prix !== 0) return null;
+        
+        const num = parseFloat(String(prix).replace(',', '.').replace(/[^0-9.]/g, ''));
+        
+        if (isNaN(num)) return null;
+        
+        // Formater avec 2 décimales si nécessaire
+        if (num % 1 !== 0) {
+            return num.toFixed(2).replace('.', ',') + ' €';
+        }
+        return num + ' €';
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // API PUBLIQUE - AGENDA (compatibilité avec app.js existant)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    /**
+     * Charge l'agenda depuis Google Sheets
+     * @param {Object} config - Configuration { googleSheetsId, sheetName, maxEvents, futureOnly }
+     * @returns {Promise<Array>} - Liste des événements
+     */
+    async function loadAgenda(config) {
+        const cacheKey = `agenda_${config.googleSheetsId}`;
+        
+        // Vérifier le cache
+        const cached = getFromCache(cacheKey);
+        if (cached) {
+            return filterAgendaEvents(cached, config);
+        }
+        
+        // Charger depuis Google Sheets
+        const rawData = await fetchSheet(config.googleSheetsId, config.sheetName || 'agenda');
+        
+        // Parser les événements
+        const events = rawData.map(row => {
+            let date = row.date;
+            
+            // Gérer différents formats de date
+            if (typeof date === 'string') {
+                if (date.includes('/')) {
+                    const parts = date.split('/');
+                    if (parts.length === 3) {
+                        date = new Date(parts[2], parts[1] - 1, parts[0]);
+                    }
+                } else {
+                    date = new Date(date);
+                }
+            } else if (!(date instanceof Date)) {
+                date = new Date(date);
+            }
+            
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+            
+            return {
+                date: date,
+                nom: row.nom || row.nom_de_l_evenement || '',
+                heureDebut: row.heure_debut || row.heuredebut || '',
+                heureFin: row.heure_fin || row.heurefin || '',
+                details: row.details || row.description || ''
+            };
+        }).filter(e => e !== null);
+        
+        // Mettre en cache les données brutes
+        saveToCache(cacheKey, events);
+        
+        return filterAgendaEvents(events, config);
+    }
+    
+    /**
+     * Filtre et trie les événements de l'agenda
+     */
+    function filterAgendaEvents(events, config) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let filtered = events;
+        
+        // Filtrer les événements futurs si configuré
+        if (config.futureOnly) {
+            filtered = events.filter(event => event.date >= today);
+        }
+        
+        // Trier par date croissante
+        filtered.sort((a, b) => a.date - b.date);
+        
+        // Limiter le nombre d'événements
+        const maxEvents = config.maxEvents || 6;
+        return filtered.slice(0, maxEvents);
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // EXPORT API PUBLIQUE
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    return {
+        loadCarteDesVins,
+        loadAgenda,
+        fetchSheet,
+        clearCache,
+        shouldForceRefresh,
+        
+        // Utilitaires exposés pour debug
+        _getFromCache: getFromCache,
+        _saveToCache: saveToCache
+    };
+    
+})();
+
+// Export pour utilisation en module si nécessaire
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SheetsLoader;
+}
