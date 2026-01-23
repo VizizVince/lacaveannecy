@@ -99,11 +99,28 @@ Data comes from Google Sheets. Update the spreadsheet directly; website caches f
 
 To force refresh: add `?refresh=1` to URL.
 
-### Add/Change Images
+### Add/Change Images & Videos
 
+**Images:**
 1. Place optimized images (< 500 KB) in `images/` folder
-2. Update paths in `config.js` under `images` section
-3. Use relative paths starting with `./images/`
+2. Use relative paths starting with `./images/`
+
+**Hero Background (Image or Video):**
+Configure in `config.js` under `medias.hero`:
+```javascript
+hero: {
+    type: "image",  // or "video"
+    src: "./images/hero-bg.jpg",  // or hero-bg.mp4
+    poster: "./images/hero-bg.jpg"  // fallback for video
+}
+```
+
+**Gallery (Images and/or Videos):**
+1. Name files: `galerie1.jpg`, `galerie2.mp4`, etc. (up to 6)
+2. Videos take priority if both exist (galerie1.mp4 > galerie1.jpg)
+3. Supported formats: `.mp4`, `.webm`, `.jpg`, `.jpeg`, `.png`, `.webp`
+4. Videos autoplay on hover (muted, looped)
+5. Layout adapts automatically to number of items
 
 ### Modify Styles
 

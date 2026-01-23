@@ -55,38 +55,53 @@ const CONFIG = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 4: IMAGES
+    // SECTION 4: MÉDIAS (IMAGES & VIDÉOS)
     // ═══════════════════════════════════════════════════════════════════════
     //
-    // GALERIE: Placez vos images dans le dossier ./images/ avec les noms:
-    //   galerie1.jpg, galerie2.jpg, galerie3.jpg, galerie4.jpg, galerie5.jpg, galerie6.jpg
+    // HERO: Vous pouvez utiliser une image OU une vidéo comme fond
+    //   - Pour une image: type: "image", src: "./images/hero-bg.jpg"
+    //   - Pour une vidéo: type: "video", src: "./images/hero-bg.mp4"
+    //   - Formats vidéo supportés: .mp4, .webm
+    //   - La vidéo sera en boucle, muette et en autoplay
     //
-    // Le site détecte automatiquement les images présentes et adapte l'affichage.
-    // Si vous avez 3 images, seules 3 seront affichées avec un layout adapté.
-    // Maximum: 6 images
+    // GALERIE: Chaque élément peut être une image OU une vidéo
+    //   - Images: galerie1.jpg, galerie2.jpg, etc.
+    //   - Vidéos: galerie1.mp4, galerie2.mp4, etc.
+    //   - Le système détecte automatiquement le type selon l'extension
+    //   - Les vidéos jouent automatiquement au survol (muettes)
+    //   - Maximum: 6 éléments (images ou vidéos mélangées)
     //
     // ═══════════════════════════════════════════════════════════════════════
 
-    images: {
+    medias: {
         logo: "./images/logo.jpg",
-        heroBackground: "./images/hero-bg.jpg",
+
+        // Configuration du fond Hero
+        // Options: type "image" ou "video"
+        hero: {
+            type: "image",                    // "image" ou "video"
+            src: "./images/hero-bg.jpg",      // Chemin vers le fichier
+            // Pour une vidéo, utiliser: type: "video", src: "./images/hero-bg.mp4"
+            poster: "./images/hero-bg.jpg"    // Image de secours si vidéo (optionnel)
+        },
 
         // Configuration de la galerie
         galerie: {
-            // Dossier contenant les images
+            // Dossier contenant les médias
             dossier: "./images/",
 
-            // Préfixe des fichiers (galerie1.jpg, galerie2.jpg, etc.)
+            // Préfixe des fichiers (galerie1, galerie2, etc.)
             prefixe: "galerie",
 
-            // Extension des fichiers
-            extension: ".jpg",
+            // Extensions à chercher (par ordre de priorité)
+            // Le système essaie d'abord .mp4, puis .webm, puis .jpg, puis .png
+            extensionsVideo: [".mp4", ".webm"],
+            extensionsImage: [".jpg", ".jpeg", ".png", ".webp"],
 
-            // Nombre maximum d'images à chercher (1 à 6)
-            maxImages: 6,
+            // Nombre maximum d'éléments à chercher (1 à 6)
+            maxItems: 6,
 
-            // Métadonnées optionnelles pour chaque image (tag et titre affichés au survol)
-            // Si non défini, les valeurs par défaut seront utilisées
+            // Métadonnées optionnelles pour chaque élément (tag et titre affichés au survol)
             metadata: {
                 1: { tag: "Vins", titre: "Notre Sélection" },
                 2: { tag: "Cuisine", titre: "Nos Plats" },
@@ -96,6 +111,12 @@ const CONFIG = {
                 6: { tag: "Passion", titre: "Notre Équipe" }
             }
         }
+    },
+
+    // Rétrocompatibilité - Ne pas modifier
+    images: {
+        logo: "./images/logo.jpg",
+        heroBackground: "./images/hero-bg.jpg"
     },
 
     // ═══════════════════════════════════════════════════════════════════════

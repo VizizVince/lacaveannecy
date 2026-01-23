@@ -423,14 +423,45 @@ a {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 50%, var(--color-primary-dark) 100%);
 }
 
-.hero__overlay {
+/* Conteneur du média hero (image ou vidéo) */
+.hero__media {
     position: absolute;
     inset: 0;
-    /* Image de fond définie dynamiquement via JavaScript (config.js > images.heroBackground) */
+    overflow: hidden;
+}
+
+/* Hero avec image de fond */
+.hero__media--image {
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
-    opacity: 0.3;
+}
+
+/* Hero avec vidéo de fond */
+.hero__media--video {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero__video {
+    position: absolute;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+}
+
+/* Overlay sombre par-dessus l'image/vidéo */
+.hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    pointer-events: none;
 }
 
 .hero__content {
@@ -766,6 +797,71 @@ a {
     font-size: var(--size-lg);
     font-weight: 600;
     color: var(--color-white);
+}
+
+/* ========================================
+   GALLERY - VIDÉOS
+   Support des vidéos dans la galerie
+======================================== */
+
+.gallery-item--video {
+    position: relative;
+}
+
+.gallery-item__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-slow);
+}
+
+.gallery-item--video:hover .gallery-item__video {
+    transform: scale(1.08);
+}
+
+/* Icône de lecture pour les vidéos */
+.gallery-item__play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.gallery-item__play-icon svg {
+    width: 28px;
+    height: 28px;
+    margin-left: 4px; /* Centrage optique du triangle */
+}
+
+.gallery-item--video:hover .gallery-item__play-icon {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+/* Sur mobile, icône plus petite */
+@media (max-width: 768px) {
+    .gallery-item__play-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .gallery-item__play-icon svg {
+        width: 20px;
+        height: 20px;
+        margin-left: 3px;
+    }
 }
 
 .gallery-cta {

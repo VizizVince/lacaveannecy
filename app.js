@@ -142,6 +142,89 @@ function applyGoogleReviews() {
 }
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * MÉDIAS - HERO (IMAGE OU VIDÉO)
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * Initialise le média du hero (image ou vidéo)
+ */
+function initHeroMedia() {
+    const heroMedia = document.getElementById('hero-media');
+    if (!heroMedia) return;
+
+    // Configuration du média hero (nouvelle structure ou rétrocompatibilité)
+    let mediaConfig = null;
+
+    if (CONFIG.medias?.hero) {
+        mediaConfig = CONFIG.medias.hero;
+    } else if (CONFIG.images?.heroBackground) {
+        // Rétrocompatibilité avec ancienne structure
+        mediaConfig = {
+            type: 'image',
+            src: CONFIG.images.heroBackground
+        };
+    }
+
+    if (!mediaConfig || !mediaConfig.src) {
+        console.warn('Aucun média hero configuré');
+        return;
+    }
+
+    if (mediaConfig.type === 'video') {
+        // Créer un élément vidéo
+        const video = document.createElement('video');
+        video.className = 'hero__video';
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.setAttribute('playsinline', ''); // Pour iOS
+
+        // Poster image de secours
+        if (mediaConfig.poster) {
+            video.poster = mediaConfig.poster;
+        }
+
+        // Source vidéo
+        const source = document.createElement('source');
+        source.src = mediaConfig.src;
+
+        // Détecter le type MIME
+        if (mediaConfig.src.endsWith('.webm')) {
+            source.type = 'video/webm';
+        } else {
+            source.type = 'video/mp4';
+        }
+
+        video.appendChild(source);
+
+        // Gestion des erreurs
+        video.onerror = function() {
+            console.warn('Erreur de chargement de la vidéo hero, fallback sur image');
+            if (mediaConfig.poster) {
+                heroMedia.style.backgroundImage = `url('${mediaConfig.poster}')`;
+                heroMedia.classList.add('hero__media--image');
+            }
+        };
+
+        heroMedia.appendChild(video);
+        heroMedia.classList.add('hero__media--video');
+
+        // Démarrer la lecture
+        video.play().catch(function(e) {
+            console.warn('Autoplay bloqué:', e);
+        });
+
+    } else {
+        // Image de fond
+        heroMedia.style.backgroundImage = `url('${mediaConfig.src}')`;
+        heroMedia.classList.add('hero__media--image');
+    }
+}
+
+/**
  * Applique la configuration au DOM
  */
 function applyConfig() {
@@ -151,20 +234,18 @@ function applyConfig() {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // IMAGES
+    // MÉDIAS (IMAGES & VIDÉOS)
     // ═══════════════════════════════════════════════════════════════════════
-    
-    // Logo
-    setElement('header-logo', 'src', CONFIG.images.logo);
-    setElement('footer-logo', 'src', CONFIG.images.logo);
-    
-    // Hero background
-    const heroBg = document.getElementById('hero-bg');
-    if (heroBg && CONFIG.images.heroBackground) {
-        heroBg.style.backgroundImage = `url('${CONFIG.images.heroBackground}')`;
-    }
-    
-    // Galerie - Génération dynamique jusqu'à 6 images
+
+    // Logo (utilise medias ou images pour rétrocompatibilité)
+    const logoSrc = CONFIG.medias?.logo || CONFIG.images?.logo;
+    setElement('header-logo', 'src', logoSrc);
+    setElement('footer-logo', 'src', logoSrc);
+
+    // Hero background (image ou vidéo)
+    initHeroMedia();
+
+    // Galerie - Génération dynamique jusqu'à 6 éléments (images/vidéos)
     generateGallery();
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -285,86 +366,236 @@ function applyConfig() {
 }
 
 /**
- * Génère la galerie d'images dynamiquement
- * Détecte automatiquement les images disponibles (galerie1.jpg à galerie6.jpg)
- * et adapte l'affichage selon le nombre d'images trouvées
+ * ═══════════════════════════════════════════════════════════════════════════
+ * GALERIE - IMAGES ET VIDÉOS
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
+ * Génère la galerie de médias dynamiquement
+ * Détecte automatiquement les fichiers disponibles (galerie1.mp4, galerie1.jpg, etc.)
+ * Supporte les images ET les vidéos avec lecture au survol
  */
 function generateGallery() {
     const container = document.getElementById('gallery-container');
-    if (!container || !CONFIG.images || !CONFIG.images.galerie) return;
+    if (!container) return;
 
-    const galerie = CONFIG.images.galerie;
+    // Configuration (nouvelle structure ou rétrocompatibilité)
+    let galerie = null;
+    if (CONFIG.medias?.galerie) {
+        galerie = CONFIG.medias.galerie;
+    } else if (CONFIG.images?.galerie) {
+        // Rétrocompatibilité
+        galerie = {
+            dossier: CONFIG.images.galerie.dossier || './images/',
+            prefixe: CONFIG.images.galerie.prefixe || 'galerie',
+            extensionsVideo: ['.mp4', '.webm'],
+            extensionsImage: [CONFIG.images.galerie.extension || '.jpg'],
+            maxItems: CONFIG.images.galerie.maxImages || 6,
+            metadata: CONFIG.images.galerie.metadata || {}
+        };
+    }
+
+    if (!galerie) return;
+
     const dossier = galerie.dossier || './images/';
     const prefixe = galerie.prefixe || 'galerie';
-    const extension = galerie.extension || '.jpg';
-    const maxImages = Math.min(galerie.maxImages || 6, 6);
+    const extensionsVideo = galerie.extensionsVideo || ['.mp4', '.webm'];
+    const extensionsImage = galerie.extensionsImage || ['.jpg', '.jpeg', '.png', '.webp'];
+    const maxItems = Math.min(galerie.maxItems || 6, 6);
     const metadata = galerie.metadata || {};
 
     // Afficher un état de chargement
     container.innerHTML = '<div class="gallery-loading">Chargement de la galerie...</div>';
 
-    // Tableau pour stocker les images valides
-    const validImages = [];
-    let loadedCount = 0;
+    // Tableau pour stocker les médias valides
+    const validMedias = [];
 
-    // Fonction pour vérifier si une image existe
-    function checkImage(index) {
+    /**
+     * Vérifie si un fichier média existe (vidéo ou image)
+     * Essaie d'abord les vidéos, puis les images
+     */
+    function checkMedia(index) {
         return new Promise((resolve) => {
+            const meta = metadata[index] || {};
+            const baseInfo = {
+                index: index,
+                tag: meta.tag || 'La Cave',
+                titre: meta.titre || `Galerie ${index}`
+            };
+
+            // D'abord, essayer les vidéos
+            checkVideoExtensions(index, extensionsVideo, 0)
+                .then((videoResult) => {
+                    if (videoResult) {
+                        validMedias.push({
+                            ...baseInfo,
+                            type: 'video',
+                            src: videoResult.src,
+                            mimeType: videoResult.mimeType
+                        });
+                        resolve(true);
+                    } else {
+                        // Pas de vidéo, essayer les images
+                        checkImageExtensions(index, extensionsImage, 0)
+                            .then((imageResult) => {
+                                if (imageResult) {
+                                    validMedias.push({
+                                        ...baseInfo,
+                                        type: 'image',
+                                        src: imageResult
+                                    });
+                                    resolve(true);
+                                } else {
+                                    resolve(false);
+                                }
+                            });
+                    }
+                });
+        });
+    }
+
+    /**
+     * Essaie les extensions vidéo une par une
+     */
+    function checkVideoExtensions(index, extensions, extIndex) {
+        return new Promise((resolve) => {
+            if (extIndex >= extensions.length) {
+                resolve(null);
+                return;
+            }
+
+            const ext = extensions[extIndex];
+            const src = `${dossier}${prefixe}${index}${ext}`;
+
+            // Créer une vidéo temporaire pour tester
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+
+            const timeout = setTimeout(() => {
+                video.src = '';
+                checkVideoExtensions(index, extensions, extIndex + 1).then(resolve);
+            }, 2000);
+
+            video.onloadedmetadata = function() {
+                clearTimeout(timeout);
+                const mimeType = ext === '.webm' ? 'video/webm' : 'video/mp4';
+                resolve({ src: src, mimeType: mimeType });
+            };
+
+            video.onerror = function() {
+                clearTimeout(timeout);
+                checkVideoExtensions(index, extensions, extIndex + 1).then(resolve);
+            };
+
+            video.src = src;
+        });
+    }
+
+    /**
+     * Essaie les extensions image une par une
+     */
+    function checkImageExtensions(index, extensions, extIndex) {
+        return new Promise((resolve) => {
+            if (extIndex >= extensions.length) {
+                resolve(null);
+                return;
+            }
+
+            const ext = extensions[extIndex];
+            const src = `${dossier}${prefixe}${index}${ext}`;
             const img = new Image();
-            const src = `${dossier}${prefixe}${index}${extension}`;
 
             img.onload = function() {
-                // L'image existe et est chargée
-                const meta = metadata[index] || {};
-                validImages.push({
-                    index: index,
-                    src: src,
-                    tag: meta.tag || 'La Cave',
-                    titre: meta.titre || `Image ${index}`
-                });
-                resolve(true);
+                resolve(src);
             };
 
             img.onerror = function() {
-                // L'image n'existe pas
-                resolve(false);
+                checkImageExtensions(index, extensions, extIndex + 1).then(resolve);
             };
 
             img.src = src;
         });
     }
 
-    // Vérifier toutes les images de 1 à maxImages
+    // Vérifier tous les médias de 1 à maxItems
     const promises = [];
-    for (let i = 1; i <= maxImages; i++) {
-        promises.push(checkImage(i));
+    for (let i = 1; i <= maxItems; i++) {
+        promises.push(checkMedia(i));
     }
 
     // Une fois toutes les vérifications terminées, afficher la galerie
     Promise.all(promises).then(() => {
-        // Trier les images par index
-        validImages.sort((a, b) => a.index - b.index);
+        // Trier les médias par index
+        validMedias.sort((a, b) => a.index - b.index);
 
         // Vider le conteneur
         container.innerHTML = '';
 
-        if (validImages.length === 0) {
-            container.innerHTML = '<p class="gallery-empty">Aucune image disponible</p>';
+        if (validMedias.length === 0) {
+            container.innerHTML = '<p class="gallery-empty">Aucun média disponible</p>';
             return;
         }
 
         // Créer les éléments de la galerie
-        validImages.forEach((imgData, displayIndex) => {
+        validMedias.forEach((mediaData, displayIndex) => {
             const item = document.createElement('div');
             item.className = 'gallery-item scroll-reveal';
 
-            item.innerHTML = `
-                <img src="${imgData.src}" alt="${imgData.titre}" loading="lazy">
-                <div class="gallery-item__overlay">
-                    <span class="gallery-item__tag">${imgData.tag}</span>
-                    <h3 class="gallery-item__title">${imgData.titre}</h3>
-                </div>
-            `;
+            if (mediaData.type === 'video') {
+                // Élément vidéo avec lecture au survol
+                item.classList.add('gallery-item--video');
+                item.innerHTML = `
+                    <video class="gallery-item__video" muted loop playsinline preload="metadata">
+                        <source src="${mediaData.src}" type="${mediaData.mimeType}">
+                    </video>
+                    <div class="gallery-item__play-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="white" stroke="none">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    </div>
+                    <div class="gallery-item__overlay">
+                        <span class="gallery-item__tag">${mediaData.tag}</span>
+                        <h3 class="gallery-item__title">${mediaData.titre}</h3>
+                    </div>
+                `;
+
+                // Ajouter les gestionnaires pour lecture au survol
+                const video = item.querySelector('video');
+                const playIcon = item.querySelector('.gallery-item__play-icon');
+
+                item.addEventListener('mouseenter', function() {
+                    video.play().catch(function() {});
+                    if (playIcon) playIcon.style.opacity = '0';
+                });
+
+                item.addEventListener('mouseleave', function() {
+                    video.pause();
+                    video.currentTime = 0;
+                    if (playIcon) playIcon.style.opacity = '1';
+                });
+
+                // Sur mobile, toggle au tap
+                item.addEventListener('touchstart', function(e) {
+                    if (video.paused) {
+                        video.play().catch(function() {});
+                        if (playIcon) playIcon.style.opacity = '0';
+                    } else {
+                        video.pause();
+                        if (playIcon) playIcon.style.opacity = '1';
+                    }
+                }, { passive: true });
+
+            } else {
+                // Élément image classique
+                item.innerHTML = `
+                    <img src="${mediaData.src}" alt="${mediaData.titre}" loading="lazy">
+                    <div class="gallery-item__overlay">
+                        <span class="gallery-item__tag">${mediaData.tag}</span>
+                        <h3 class="gallery-item__title">${mediaData.titre}</h3>
+                    </div>
+                `;
+            }
 
             container.appendChild(item);
 
@@ -374,8 +605,8 @@ function generateGallery() {
             }, 100 * displayIndex);
         });
 
-        // Appliquer le layout adaptatif selon le nombre d'images
-        applyGalleryLayout(container, validImages.length);
+        // Appliquer le layout adaptatif selon le nombre de médias
+        applyGalleryLayout(container, validMedias.length);
     });
 }
 
