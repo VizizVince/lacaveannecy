@@ -494,32 +494,49 @@ const CONFIG = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 9: AVIS GOOGLE
+    // SECTION 9: AVIS GOOGLE - CONNEXION GOOGLE SHEETS
     // ═══════════════════════════════════════════════════════════════════════
     //
-    // Les avis Google sont affichés à deux endroits:
-    // 1. Hero: Note globale + nombre d'avis (sous le badge "Bar à vins")
-    // 2. Contact: Top 3 des meilleurs avis (sous la carte Google Maps)
+    // Les avis Google sont chargés depuis Google Sheets !
     //
-    // Pour mettre à jour: Visitez votre page Google Business et copiez
-    // les informations ci-dessous. Limitez les commentaires à 150 caractères.
+    // Structure de l'onglet "Notes Google":
+    // - A2: Note globale /5 (ex: 4,7)
+    // - A5: Nombre total d'avis (ex: 238)
+    // - C2:C5: Nom de la personne
+    // - D2:D5: Note donnée /5
+    // - E2:E5: Commentaire
+    // - F2:F5: Date de publication (format JJ/MM/AAAA ou texte relatif)
+    //
+    // Les données sont chargées dynamiquement. En cas d'erreur, les données
+    // de fallback ci-dessous seront utilisées.
+    //
     // ═══════════════════════════════════════════════════════════════════════
 
     googleAvis: {
+        // Connexion Google Sheets
+        googleSheets: {
+            id: "1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4",
+            sheetName: "Notes Google"
+        },
+
         // Lien vers la page Google Business
         lienGoogle: "https://share.google/yJc5yZshOdq2ugHs4",
-
-        // Note globale (sur 5)
-        noteGlobale: 4.7,
-
-        // Nombre total d'avis
-        nombreAvis: 238,
 
         // Textes de la section avis
         textes: {
             titreSectionContact: "Ce que nos clients disent",
             boutonVoirTous: "Voir tous les avis"
         },
+
+        // ═══════════════════════════════════════════════════════════════════
+        // FALLBACK: Données utilisées si Google Sheets est indisponible
+        // ═══════════════════════════════════════════════════════════════════
+
+        // Note globale (sur 5) - Fallback
+        noteGlobale: 4.7,
+
+        // Nombre total d'avis - Fallback
+        nombreAvis: 238,
 
         // Top 3 des meilleurs avis (affichés dans la section Contact)
         // Limitez les commentaires à 150 caractères maximum

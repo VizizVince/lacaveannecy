@@ -22,45 +22,205 @@ const EVENT_ICONS = {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- * AVIS GOOGLE
+ * AVIS GOOGLE - CHARGEMENT DEPUIS GOOGLE SHEETS
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 /**
- * Génère les étoiles HTML pour une note donnée (sur 5)
+ * Charge les avis Google depuis Google Sheets
+ * Structure attendue dans l'onglet "Notes Google":
+ * - A2: Note globale /5
+ * - A5: Nombre d'avis
+ * - C2:C5: Nom de la personne
+ * - D2:D5: Note donnée /5
+ * - E2:E5: Commentaire
+ * - F2:F5: Date de publication
  */
-function generateStars(rating, cssClass = '') {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-    let html = '';
-
-    // Étoiles pleines
-    for (let i = 0; i < fullStars; i++) {
-        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+async function loadGoogleReviewsFromSheets() {
+    // Vérifier la configuration
+    if (!CONFIG.googleAvis?.googleSheets?.id) {
+        console.log('[Avis Google] Pas de configuration Sheets, utilisation des données statiques');
+        applyGoogleReviews();
+        return;
     }
 
-    // Demi-étoile (optionnel, affichée comme étoile pleine pour simplifier)
-    if (hasHalfStar) {
-        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-    }
+    const sheetId = CONFIG.googleAvis.googleSheets.id;
+    const sheetName = CONFIG.googleAvis.googleSheets.sheetName || 'Notes Google';
 
-    // Étoiles vides
-    for (let i = 0; i < emptyStars; i++) {
-        html += `<svg class="${cssClass} star-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
-    }
+    try {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
 
-    return html;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const text = await response.text();
+
+        // Extraire le JSON de la réponse JSONP
+        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+        if (!jsonMatch || !jsonMatch[1]) {
+            throw new Error('Format de réponse invalide');
+        }
+
+        const data = JSON.parse(jsonMatch[1]);
+
+        if (!data.table || !data.table.rows) {
+            throw new Error('Données vides');
+        }
+
+        const rows = data.table.rows;
+
+        // Parser les données
+        const reviewsData = parseGoogleReviewsData(rows);
+
+        // Appliquer les données au DOM
+        applyGoogleReviewsData(reviewsData);
+
+        console.log('[Avis Google] Données chargées depuis Sheets:', reviewsData);
+
+    } catch (error) {
+        console.warn('[Avis Google] Erreur chargement Sheets, fallback sur config.js:', error.message);
+        // Fallback sur les données statiques de config.js
+        applyGoogleReviews();
+    }
 }
 
 /**
- * Applique les avis Google au Hero et à la section Contact
+ * Parse les données brutes du Google Sheets
  */
-function applyGoogleReviews() {
-    if (!CONFIG.googleAvis) return;
+function parseGoogleReviewsData(rows) {
+    const result = {
+        noteGlobale: 0,
+        nombreAvis: 0,
+        topAvis: []
+    };
 
-    const avis = CONFIG.googleAvis;
+    // Fonction utilitaire pour obtenir la valeur d'une cellule
+    function getCellValue(row, colIndex) {
+        if (!row || !row.c || !row.c[colIndex]) return null;
+        const cell = row.c[colIndex];
+        // Préférer la valeur formatée si disponible, sinon la valeur brute
+        return cell.f !== undefined ? cell.f : cell.v;
+    }
+
+    // Fonction pour parser un nombre (gère la virgule comme séparateur décimal)
+    function parseNumber(value) {
+        if (value === null || value === undefined) return 0;
+        if (typeof value === 'number') return value;
+        // Remplacer la virgule par un point pour le parsing
+        const cleaned = String(value).replace(',', '.').trim();
+        const num = parseFloat(cleaned);
+        return isNaN(num) ? 0 : num;
+    }
+
+    // Fonction pour parser une date et calculer la date relative
+    function parseRelativeDate(value) {
+        if (!value) return '';
+
+        let date;
+
+        // Si c'est déjà une chaîne relative (ex: "il y a 2 semaines"), la retourner
+        if (typeof value === 'string' && value.toLowerCase().includes('il y a')) {
+            return value;
+        }
+
+        // Essayer de parser comme date
+        if (typeof value === 'string') {
+            // Format Google Sheets Date(year,month,day)
+            const googleDateMatch = value.match(/Date\((\d+),(\d+),(\d+)\)/);
+            if (googleDateMatch) {
+                date = new Date(
+                    parseInt(googleDateMatch[1]),
+                    parseInt(googleDateMatch[2]),
+                    parseInt(googleDateMatch[3])
+                );
+            }
+            // Format JJ/MM/AAAA
+            else if (value.includes('/')) {
+                const parts = value.split('/');
+                if (parts.length === 3) {
+                    date = new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+            }
+            // Format ISO ou autre
+            else {
+                date = new Date(value);
+            }
+        } else if (value instanceof Date) {
+            date = value;
+        } else {
+            date = new Date(value);
+        }
+
+        // Vérifier si la date est valide
+        if (!date || isNaN(date.getTime())) {
+            return String(value);
+        }
+
+        // Calculer la différence en jours
+        const now = new Date();
+        const diffTime = now - date;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) return 'récemment';
+        if (diffDays === 0) return "aujourd'hui";
+        if (diffDays === 1) return 'hier';
+        if (diffDays < 7) return `il y a ${diffDays} jours`;
+        if (diffDays < 14) return 'il y a 1 semaine';
+        if (diffDays < 30) return `il y a ${Math.floor(diffDays / 7)} semaines`;
+        if (diffDays < 60) return 'il y a 1 mois';
+        if (diffDays < 365) return `il y a ${Math.floor(diffDays / 30)} mois`;
+        if (diffDays < 730) return 'il y a 1 an';
+        return `il y a ${Math.floor(diffDays / 365)} ans`;
+    }
+
+    // Row 0 = ligne 1 dans Sheets (en-têtes probablement)
+    // Row 1 = ligne 2 dans Sheets (A2 = note globale)
+    // ...
+    // Row 4 = ligne 5 dans Sheets (A5 = nombre d'avis)
+
+    // Note globale (A2 = row index 1, col index 0)
+    if (rows[1]) {
+        result.noteGlobale = parseNumber(getCellValue(rows[1], 0));
+    }
+
+    // Nombre d'avis (A5 = row index 4, col index 0)
+    if (rows[4]) {
+        result.nombreAvis = parseNumber(getCellValue(rows[4], 0));
+        // S'assurer que c'est un entier
+        result.nombreAvis = Math.round(result.nombreAvis);
+    }
+
+    // Avis individuels (lignes 2 à 5, colonnes C, D, E, F = indices 2, 3, 4, 5)
+    // Row indices 1, 2, 3, 4 pour les lignes 2, 3, 4, 5
+    for (let i = 1; i <= 4; i++) {
+        if (!rows[i]) continue;
+
+        const nom = getCellValue(rows[i], 2); // Colonne C
+        const note = parseNumber(getCellValue(rows[i], 3)); // Colonne D
+        const commentaire = getCellValue(rows[i], 4); // Colonne E
+        const dateValue = getCellValue(rows[i], 5); // Colonne F
+
+        // Ne pas ajouter si pas de nom ou pas de commentaire
+        if (!nom || !commentaire) continue;
+
+        result.topAvis.push({
+            auteur: String(nom).trim(),
+            note: note,
+            commentaire: String(commentaire).trim(),
+            dateRelative: parseRelativeDate(dateValue)
+        });
+    }
+
+    return result;
+}
+
+/**
+ * Applique les données des avis Google chargées depuis Sheets
+ */
+function applyGoogleReviewsData(data) {
+    const avis = CONFIG.googleAvis || {};
 
     // ═══════════════════════════════════════════════════════════════════════
     // HERO: Badge de note Google
@@ -72,18 +232,20 @@ function applyGoogleReviews() {
     }
 
     const heroStars = document.getElementById('hero-rating-stars');
-    if (heroStars && avis.noteGlobale) {
-        heroStars.innerHTML = generateStars(avis.noteGlobale);
+    if (heroStars && data.noteGlobale) {
+        heroStars.innerHTML = generateStars(data.noteGlobale);
     }
 
     const heroNote = document.getElementById('hero-rating-note');
-    if (heroNote && avis.noteGlobale) {
-        heroNote.textContent = `${avis.noteGlobale}/5`;
+    if (heroNote && data.noteGlobale) {
+        // Formater avec virgule pour l'affichage français
+        const noteFormatted = data.noteGlobale.toFixed(1).replace('.', ',');
+        heroNote.textContent = `${noteFormatted}/5`;
     }
 
     const heroCount = document.getElementById('hero-rating-count');
-    if (heroCount && avis.nombreAvis) {
-        heroCount.textContent = `${avis.nombreAvis} avis Google`;
+    if (heroCount && data.nombreAvis) {
+        heroCount.textContent = `${data.nombreAvis} avis Google`;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -96,10 +258,10 @@ function applyGoogleReviews() {
     }
 
     const reviewsContainer = document.getElementById('reviews-container');
-    if (reviewsContainer && avis.topAvis && avis.topAvis.length > 0) {
+    if (reviewsContainer && data.topAvis && data.topAvis.length > 0) {
         reviewsContainer.innerHTML = '';
 
-        avis.topAvis.forEach((review, index) => {
+        data.topAvis.forEach((review, index) => {
             const card = document.createElement('div');
             card.className = 'review-card scroll-reveal';
 
@@ -139,6 +301,52 @@ function applyGoogleReviews() {
     if (reviewsBtnText && avis.textes?.boutonVoirTous) {
         reviewsBtnText.textContent = avis.textes.boutonVoirTous;
     }
+}
+
+/**
+ * Génère les étoiles HTML pour une note donnée (sur 5)
+ */
+function generateStars(rating, cssClass = '') {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    let html = '';
+
+    // Étoiles pleines
+    for (let i = 0; i < fullStars; i++) {
+        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    // Demi-étoile (optionnel, affichée comme étoile pleine pour simplifier)
+    if (hasHalfStar) {
+        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    // Étoiles vides
+    for (let i = 0; i < emptyStars; i++) {
+        html += `<svg class="${cssClass} star-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    return html;
+}
+
+/**
+ * Applique les avis Google depuis config.js (fallback)
+ */
+function applyGoogleReviews() {
+    if (!CONFIG.googleAvis) return;
+
+    const avis = CONFIG.googleAvis;
+
+    // Utiliser les données statiques de config.js
+    const data = {
+        noteGlobale: avis.noteGlobale || 0,
+        nombreAvis: avis.nombreAvis || 0,
+        topAvis: avis.topAvis || []
+    };
+
+    applyGoogleReviewsData(data);
 }
 
 /**
@@ -359,10 +567,10 @@ function applyConfig() {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // AVIS GOOGLE
+    // AVIS GOOGLE (chargement asynchrone depuis Google Sheets)
     // ═══════════════════════════════════════════════════════════════════════
 
-    applyGoogleReviews();
+    loadGoogleReviewsFromSheets();
 }
 
 /**
