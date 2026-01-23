@@ -10,12 +10,12 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-// Icônes SVG pour l'équipe
-const TEAM_ICONS = {
-    person: '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-    wine: '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg>',
-    chef: '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/></svg>',
-    bartender: '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.116 4.104a1 1 0 0 1 1.768.896l-1.8 3.6A5 5 0 0 0 4 12v8h16v-8a5 5 0 0 0-1.084-3.4l-1.8-3.6a1 1 0 0 1 1.768-.896l1.8 3.6A7 7 0 0 1 22 12v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8a7 7 0 0 1 1.316-4.296z"/></svg>'
+// Icônes SVG pour les événements
+const EVENT_ICONS = {
+    calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
+    clock: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    wine: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/></svg>',
+    star: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
 };
 
 /**
@@ -79,18 +79,18 @@ function applyConfig() {
     }
 
     // ═══════════════════════════════════════════════════════════════════════
-    // ÉQUIPE
+    // AGENDA (remplace ÉQUIPE)
     // ═══════════════════════════════════════════════════════════════════════
     
-    if (CONFIG.accueil && CONFIG.accueil.equipe) {
-        const equipe = CONFIG.accueil.equipe;
-        setElement('equipe-badge', 'textContent', equipe.badge);
-        setElement('equipe-titre', 'textContent', equipe.titre);
-        setElement('equipe-description', 'textContent', equipe.description);
+    if (CONFIG.accueil && CONFIG.accueil.agenda) {
+        const agenda = CONFIG.accueil.agenda;
+        setElement('agenda-badge', 'textContent', agenda.badge);
+        setElement('agenda-titre', 'textContent', agenda.titre);
+        setElement('agenda-description', 'textContent', agenda.description);
     }
     
-    // Générer les cartes d'équipe
-    generateTeamCards();
+    // Charger les événements depuis Google Sheets
+    loadAgendaFromGoogleSheets();
 
     // ═══════════════════════════════════════════════════════════════════════
     // CONTACT
@@ -206,38 +206,290 @@ function generateGallery() {
 }
 
 /**
- * Génère les cartes d'équipe depuis la configuration
+ * ═══════════════════════════════════════════════════════════════════════════
+ * AGENDA - CHARGEMENT DEPUIS GOOGLE SHEETS
+ * ═══════════════════════════════════════════════════════════════════════════
  */
-function generateTeamCards() {
-    const container = document.getElementById('team-container');
-    if (!container || !CONFIG.equipe) return;
+
+/**
+ * Charge les événements depuis Google Sheets
+ */
+async function loadAgendaFromGoogleSheets() {
+    const container = document.getElementById('agenda-container');
+    if (!container) return;
+    
+    // Afficher le message de chargement
+    container.innerHTML = `
+        <div class="agenda-loading">
+            <div class="agenda-loading__spinner"></div>
+            <p>${CONFIG.accueil?.agenda?.messageChargement || 'Chargement des événements...'}</p>
+        </div>
+    `;
+    
+    try {
+        const events = await fetchGoogleSheetsData();
+        
+        if (events && events.length > 0) {
+            renderAgendaEvents(events);
+        } else {
+            renderEmptyAgenda();
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement de l\'agenda:', error);
+        renderAgendaError();
+    }
+}
+
+/**
+ * Récupère les données du Google Sheets
+ */
+async function fetchGoogleSheetsData() {
+    if (!CONFIG.agenda || !CONFIG.agenda.googleSheetsId) {
+        throw new Error('Configuration Google Sheets manquante');
+    }
+    
+    const sheetId = CONFIG.agenda.googleSheetsId;
+    const sheetName = CONFIG.agenda.sheetName || 'agenda';
+    
+    // URL pour récupérer les données en format CSV via l'API Google Sheets
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+    
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const text = await response.text();
+    
+    // Google renvoie du JSONP, on doit extraire le JSON
+    const jsonString = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+    
+    if (!jsonString || !jsonString[1]) {
+        throw new Error('Format de réponse invalide');
+    }
+    
+    const data = JSON.parse(jsonString[1]);
+    
+    if (!data.table || !data.table.rows) {
+        return [];
+    }
+    
+    // Parser les données
+    const events = [];
+    const rows = data.table.rows;
+    
+    // Ignorer la première ligne (en-têtes) si nécessaire
+    const startIndex = rows.length > 0 && rows[0].c && rows[0].c[0] && 
+                       (rows[0].c[0].v === 'Date' || rows[0].c[0].v === 'date') ? 1 : 0;
+    
+    for (let i = startIndex; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row.c || !row.c[0]) continue;
+        
+        const event = parseEventRow(row.c);
+        if (event) {
+            events.push(event);
+        }
+    }
+    
+    // Filtrer et trier les événements
+    return filterAndSortEvents(events);
+}
+
+/**
+ * Parse une ligne du Google Sheets en objet événement
+ */
+function parseEventRow(cells) {
+    // Colonne A: Date
+    // Colonne B: Nom de l'événement
+    // Colonne C: Heure de début
+    // Colonne D: Heure de fin
+    // Colonne E: Détails
+    
+    const dateValue = cells[0]?.v;
+    const nom = cells[1]?.v;
+    
+    // Ignorer les lignes sans date ou sans nom
+    if (!dateValue || !nom) return null;
+    
+    // Parser la date
+    let date;
+    if (typeof dateValue === 'string') {
+        // Format JJ/MM/AAAA ou AAAA-MM-JJ
+        if (dateValue.includes('/')) {
+            const parts = dateValue.split('/');
+            if (parts.length === 3) {
+                date = new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        } else {
+            date = new Date(dateValue);
+        }
+    } else if (dateValue instanceof Date) {
+        date = dateValue;
+    } else if (typeof dateValue === 'object' && dateValue.v) {
+        // Format Google Sheets Date
+        date = new Date(dateValue.v);
+    } else {
+        // Essayer de parser comme chaîne "Date(year,month,day)"
+        const match = String(dateValue).match(/Date\((\d+),(\d+),(\d+)\)/);
+        if (match) {
+            date = new Date(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
+        } else {
+            date = new Date(dateValue);
+        }
+    }
+    
+    // Vérifier si la date est valide
+    if (isNaN(date.getTime())) {
+        console.warn('Date invalide pour l\'événement:', nom, dateValue);
+        return null;
+    }
+    
+    return {
+        date: date,
+        nom: nom,
+        heureDebut: cells[2]?.v || '',
+        heureFin: cells[3]?.v || '',
+        details: cells[4]?.v || ''
+    };
+}
+
+/**
+ * Filtre et trie les événements
+ */
+function filterAndSortEvents(events) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let filtered = events;
+    
+    // Filtrer les événements futurs si configuré
+    if (CONFIG.agenda?.futureOnly) {
+        filtered = events.filter(event => event.date >= today);
+    }
+    
+    // Trier par date croissante
+    filtered.sort((a, b) => a.date - b.date);
+    
+    // Limiter le nombre d'événements
+    const maxEvents = CONFIG.agenda?.maxEvents || 6;
+    return filtered.slice(0, maxEvents);
+}
+
+/**
+ * Affiche les événements dans le DOM
+ */
+function renderAgendaEvents(events) {
+    const container = document.getElementById('agenda-container');
+    if (!container) return;
     
     container.innerHTML = '';
     
-    CONFIG.equipe.forEach((membre, index) => {
-        const icon = TEAM_ICONS[membre.icone] || TEAM_ICONS.person;
-        
-        const card = document.createElement('div');
-        card.className = 'team-card scroll-reveal';
-        card.innerHTML = `
-            <div class="team-card__image">
-                <div class="team-card__placeholder">
-                    ${icon}
-                </div>
-            </div>
-            <div class="team-card__content">
-                <h3 class="team-card__name">${membre.nom}</h3>
-                <p class="team-card__role">${membre.role}</p>
-            </div>
-        `;
-        
+    events.forEach((event, index) => {
+        const card = createEventCard(event);
         container.appendChild(card);
         
-        // Déclencher l'animation avec un délai
+        // Animation d'apparition progressive
         setTimeout(() => {
             card.classList.add('animate-visible');
         }, 100 * index);
     });
+}
+
+/**
+ * Crée une carte d'événement
+ */
+function createEventCard(event) {
+    const card = document.createElement('div');
+    card.className = 'event-card scroll-reveal';
+    
+    // Formater la date
+    const options = { weekday: 'short', day: 'numeric', month: 'short' };
+    const dateFormatted = event.date.toLocaleDateString('fr-FR', options);
+    
+    // Formater l'heure
+    let timeString = '';
+    if (event.heureDebut) {
+        timeString = event.heureDebut;
+        if (event.heureFin) {
+            timeString += ` - ${event.heureFin}`;
+        }
+    }
+    
+    // Déterminer si c'est bientôt (dans les 7 jours)
+    const today = new Date();
+    const diffDays = Math.ceil((event.date - today) / (1000 * 60 * 60 * 24));
+    const isSoon = diffDays >= 0 && diffDays <= 7;
+    
+    if (isSoon) {
+        card.classList.add('event-card--soon');
+    }
+    
+    card.innerHTML = `
+        <div class="event-card__date">
+            <span class="event-card__day">${event.date.getDate()}</span>
+            <span class="event-card__month">${event.date.toLocaleDateString('fr-FR', { month: 'short' })}</span>
+        </div>
+        <div class="event-card__content">
+            <h3 class="event-card__title">${escapeHtml(event.nom)}</h3>
+            ${timeString ? `
+                <div class="event-card__time">
+                    ${EVENT_ICONS.clock}
+                    <span>${escapeHtml(timeString)}</span>
+                </div>
+            ` : ''}
+            ${event.details ? `
+                <p class="event-card__details">${escapeHtml(event.details)}</p>
+            ` : ''}
+        </div>
+        ${isSoon ? `<span class="event-card__badge">Bientôt !</span>` : ''}
+    `;
+    
+    return card;
+}
+
+/**
+ * Affiche le message quand aucun événement
+ */
+function renderEmptyAgenda() {
+    const container = document.getElementById('agenda-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="agenda-empty">
+            <div class="agenda-empty__icon">${EVENT_ICONS.wine}</div>
+            <p class="agenda-empty__text">${CONFIG.accueil?.agenda?.messageVide || 'Aucun événement prévu pour le moment.'}</p>
+            <p class="agenda-empty__subtext">Suivez-nous sur Instagram pour rester informés !</p>
+        </div>
+    `;
+}
+
+/**
+ * Affiche le message d'erreur
+ */
+function renderAgendaError() {
+    const container = document.getElementById('agenda-container');
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="agenda-error">
+            <p>${CONFIG.accueil?.agenda?.messageErreur || 'Impossible de charger les événements.'}</p>
+            <button class="btn btn--secondary btn--small" onclick="loadAgendaFromGoogleSheets()">
+                Réessayer
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * Échappe les caractères HTML pour éviter les injections XSS
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 /**
