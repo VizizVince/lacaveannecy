@@ -196,12 +196,6 @@ button {
     padding: 0 var(--space-lg);
 }
 
-.header__logo {
-    display: flex;
-    align-items: center;
-    z-index: 1001;
-}
-
 .logo__image {
     height: 55px;
     width: auto;
