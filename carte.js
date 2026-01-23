@@ -187,28 +187,37 @@ function generateFilters(categories) {
  */
 function setupFilterEvents() {
     const filterTabs = document.querySelectorAll('.filter-tab');
-    
+
     filterTabs.forEach(tab => {
         tab.addEventListener('click', function() {
             const filter = tab.dataset.filter;
-            
+
             // Mettre à jour l'onglet actif
             filterTabs.forEach(t => t.classList.remove('filter-tab--active'));
             tab.classList.add('filter-tab--active');
-            
+
             CarteState.activeFilter = filter;
-            
+
             // Filtrer les sections
             const menuSections = document.querySelectorAll('.menu-section');
             menuSections.forEach(section => {
                 if (filter === 'all' || section.dataset.category === filter) {
                     section.style.display = '';
                     section.classList.add('animate-visible');
+
+                    // Si filtre "all", activer le mode dépliable
+                    if (filter === 'all') {
+                        section.classList.add('menu-section--collapsible-mode');
+                    } else {
+                        // Si filtre spécifique, désactiver le mode dépliable et déplier
+                        section.classList.remove('menu-section--collapsible-mode');
+                        section.classList.remove('menu-section--collapsed');
+                    }
                 } else {
                     section.style.display = 'none';
                 }
             });
-            
+
             // Scroll vers la première section visible (sauf si "Tout")
             if (filter !== 'all') {
                 const firstVisible = document.querySelector(`.menu-section[data-category="${filter}"]`);
@@ -216,7 +225,7 @@ function setupFilterEvents() {
                     const headerOffset = 160; // Header + filter nav
                     const elementPosition = firstVisible.getBoundingClientRect().top;
                     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                    
+
                     window.scrollTo({
                         top: offsetPosition,
                         behavior: 'smooth'
@@ -239,31 +248,41 @@ function setupFilterEvents() {
 function renderMenu(categories) {
     const container = document.getElementById('menu-container');
     if (!container) return;
-    
+
     let html = '';
-    
+
     categories.forEach((cat, index) => {
         const id = slugify(cat.nom);
-        
+        // Par défaut, les sections sont dépliées
+        const isCollapsed = false;
+
         html += `
-            <section class="menu-section scroll-reveal" data-category="${id}" id="${id}">
-                <div class="menu-section__header">
+            <section class="menu-section scroll-reveal menu-section--collapsible-mode" data-category="${id}" id="${id}">
+                <div class="menu-section__header menu-section__header--collapsible" data-section="${id}">
                     <div class="menu-section__icon">${cat.emoji}</div>
-                    <div>
+                    <div class="menu-section__header-content">
                         <h2 class="menu-section__title">${escapeHtml(cat.nom)}</h2>
                         <p class="menu-section__subtitle">${generateSubtitle(cat)}</p>
                     </div>
+                    <div class="menu-section__toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
                 </div>
-                
-                <div class="menu-columns">
+
+                <div class="menu-columns menu-section__content">
                     ${renderSousCategories(cat.sousCategories)}
                 </div>
             </section>
         `;
     });
-    
+
     container.innerHTML = html;
-    
+
+    // Ajouter les événements de clic pour le dépliage (seulement si filtre "all")
+    setupCollapsibleEvents();
+
     // Déclencher les animations
     setTimeout(() => {
         document.querySelectorAll('.menu-section').forEach((section, i) => {
@@ -272,6 +291,25 @@ function renderMenu(categories) {
             }, i * 100);
         });
     }, 100);
+}
+
+/**
+ * Configure les événements de dépliage des sections
+ */
+function setupCollapsibleEvents() {
+    const headers = document.querySelectorAll('.menu-section__header--collapsible');
+
+    headers.forEach(header => {
+        header.addEventListener('click', function(e) {
+            // Ne pas plier si un filtre spécifique est actif
+            if (CarteState.activeFilter !== 'all') return;
+
+            const section = header.closest('.menu-section');
+            if (!section) return;
+
+            section.classList.toggle('menu-section--collapsed');
+        });
+    });
 }
 
 /**

@@ -139,14 +139,56 @@ function initHeader() {
  */
 function initFilterButtons() {
     const filterBtns = document.querySelectorAll('.filter-tab');
-    
+
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => b.classList.remove('filter-tab--active'));
             btn.classList.add('filter-tab--active');
-            
+
             currentFilter = btn.dataset.category;
             renderMenu();
+
+            // Gérer le mode dépliable selon le filtre
+            updateCollapsibleMode();
+        });
+    });
+}
+
+/**
+ * Met à jour le mode dépliable des sections selon le filtre actif
+ */
+function updateCollapsibleMode() {
+    const sections = document.querySelectorAll('.menu-section');
+
+    sections.forEach(section => {
+        if (currentFilter === 'all') {
+            section.classList.add('menu-section--collapsible-mode');
+        } else {
+            section.classList.remove('menu-section--collapsible-mode');
+            section.classList.remove('menu-section--collapsed');
+        }
+    });
+}
+
+/**
+ * Configure les événements de dépliage des sections
+ */
+function setupCollapsibleEvents() {
+    const headers = document.querySelectorAll('.menu-section__header--collapsible');
+
+    headers.forEach(header => {
+        // Éviter les doublons d'événements
+        if (header.dataset.collapsibleBound) return;
+        header.dataset.collapsibleBound = 'true';
+
+        header.addEventListener('click', function(e) {
+            // Ne pas plier si un filtre spécifique est actif
+            if (currentFilter !== 'all') return;
+
+            const section = header.closest('.menu-section');
+            if (!section) return;
+
+            section.classList.toggle('menu-section--collapsed');
         });
     });
 }
@@ -391,24 +433,32 @@ function renderMenu() {
     
     let html = '';
     
+    // Déterminer si le mode dépliable est actif
+    const collapsibleClass = currentFilter === 'all' ? 'menu-section--collapsible-mode' : '';
+
     // D'abord les catégories dans l'ordre défini
     categoryOrder.forEach(category => {
         console.log('[Menu] Vérification catégorie:', category, '- trouvée:', !!grouped[category]);
-        
+
         if (grouped[category] && grouped[category].length > 0) {
             const catConfig = MENU_CONFIG.categories[category] || { emoji: '🍽️', horaires: '' };
-            
+
             html += `
-                <section class="menu-section scroll-reveal animate-visible" data-category="${category}">
-                    <div class="menu-section__header">
+                <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${category}">
+                    <div class="menu-section__header menu-section__header--collapsible">
                         <div class="menu-section__icon">${catConfig.emoji}</div>
-                        <div>
+                        <div class="menu-section__header-content">
                             <h2 class="menu-section__title">${category}</h2>
                             ${catConfig.horaires ? `<p class="menu-section__subtitle">${catConfig.horaires}</p>` : ''}
                         </div>
+                        <div class="menu-section__toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
                     </div>
-                    
-                    <div class="menu-columns">
+
+                    <div class="menu-columns menu-section__content">
                         <div class="menu-category">
                             <div class="menu-items">
                                 ${grouped[category].map(item => renderMenuItem(item)).join('')}
@@ -419,20 +469,25 @@ function renderMenu() {
             `;
         }
     });
-    
+
     // Puis les autres catégories non définies dans l'ordre
     Object.keys(grouped).forEach(category => {
         if (!categoryOrder.includes(category) && grouped[category].length > 0) {
             html += `
-                <section class="menu-section scroll-reveal animate-visible" data-category="${category}">
-                    <div class="menu-section__header">
+                <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${category}">
+                    <div class="menu-section__header menu-section__header--collapsible">
                         <div class="menu-section__icon">🍽️</div>
-                        <div>
+                        <div class="menu-section__header-content">
                             <h2 class="menu-section__title">${escapeHtml(category)}</h2>
                         </div>
+                        <div class="menu-section__toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
                     </div>
-                    
-                    <div class="menu-columns">
+
+                    <div class="menu-columns menu-section__content">
                         <div class="menu-category">
                             <div class="menu-items">
                                 ${grouped[category].map(item => renderMenuItem(item)).join('')}
@@ -459,6 +514,9 @@ function renderMenu() {
     
     container.innerHTML = html;
     console.log('[Menu] HTML injecté dans le container');
+
+    // Ajouter les événements de dépliage
+    setupCollapsibleEvents();
 }
 
 /**

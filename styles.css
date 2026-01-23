@@ -1497,6 +1497,87 @@ a {
     color: var(--color-text-light);
 }
 
+/* ========================================
+   SECTIONS DÉPLIABLES (MODE "TOUT")
+======================================== */
+
+/* Header avec contenu flexible */
+.menu-section__header-content {
+    flex: 1;
+}
+
+/* Icône de toggle (chevron) */
+.menu-section__toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: var(--color-text-light);
+    transition: transform var(--transition-fast), color var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.menu-section__toggle svg {
+    transition: transform var(--transition-base);
+}
+
+/* Mode dépliable actif (quand filtre "Tout") */
+.menu-section--collapsible-mode .menu-section__header--collapsible {
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    margin: calc(var(--space-2xl) * -1);
+    margin-bottom: var(--space-2xl);
+    padding: var(--space-2xl);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.menu-section--collapsible-mode .menu-section__header--collapsible:hover {
+    background: var(--color-cream);
+}
+
+.menu-section--collapsible-mode .menu-section__toggle {
+    display: flex;
+}
+
+.menu-section--collapsible-mode .menu-section__header--collapsible:hover .menu-section__toggle {
+    color: var(--color-accent);
+}
+
+/* Contenu de la section */
+.menu-section__content {
+    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+    overflow: hidden;
+}
+
+/* Section repliée */
+.menu-section--collapsed .menu-section__toggle svg {
+    transform: rotate(-90deg);
+}
+
+.menu-section--collapsed .menu-section__content {
+    max-height: 0 !important;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+}
+
+.menu-section--collapsed .menu-section__header--collapsible {
+    margin-bottom: 0;
+    border-radius: var(--radius-xl);
+    border-bottom: none;
+}
+
+/* Quand PAS en mode dépliable (filtre spécifique), cacher l'icône */
+.menu-section:not(.menu-section--collapsible-mode) .menu-section__toggle {
+    display: none !important;
+}
+
+.menu-section:not(.menu-section--collapsible-mode) .menu-section__header--collapsible {
+    cursor: default;
+}
+
 /* Menu Columns */
 .menu-columns {
     display: grid;
@@ -1888,18 +1969,40 @@ a {
         padding: var(--space-lg);
         margin-bottom: var(--space-lg);
     }
-    
+
     .menu-section__header {
         flex-direction: column;
         text-align: center;
         gap: var(--space-md);
     }
-    
+
+    /* En mode dépliable sur mobile, garder une disposition en ligne */
+    .menu-section--collapsible-mode .menu-section__header--collapsible {
+        flex-direction: row;
+        text-align: left;
+        margin: calc(var(--space-lg) * -1);
+        margin-bottom: var(--space-lg);
+        padding: var(--space-lg);
+    }
+
+    .menu-section--collapsible-mode .menu-section__header-content {
+        text-align: left;
+    }
+
+    .menu-section--collapsed .menu-section__header--collapsible {
+        margin-bottom: 0;
+    }
+
+    .menu-section__toggle {
+        width: 36px;
+        height: 36px;
+    }
+
     .menu-section__icon {
         width: 50px;
         height: 50px;
     }
-    
+
     .menu-category {
         padding: var(--space-md);
     }
