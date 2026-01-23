@@ -688,30 +688,64 @@ document.addEventListener('DOMContentLoaded', function() {
     let scrollPosition = 0;
 
     /**
+     * Empêche le scroll sur iOS (touchmove)
+     */
+    function preventScroll(e) {
+        // Permettre le scroll dans la liste de navigation si elle déborde
+        if (e.target.closest('.nav__list')) {
+            return;
+        }
+        e.preventDefault();
+    }
+
+    /**
      * Ouvre le menu mobile en préservant la position de scroll
      */
     function openMobileMenu() {
-        scrollPosition = window.pageYOffset;
+        // Sauvegarder la position de scroll actuelle
+        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+        // Ajouter les classes
         burger.classList.add('header__burger--active');
         burger.setAttribute('aria-expanded', 'true');
         nav.classList.add('nav--open');
+        header.classList.add('menu-is-open');
         document.body.classList.add('menu-open');
+
+        // Fixer le body à la position actuelle pour éviter le saut
         document.body.style.top = `-${scrollPosition}px`;
+
+        // Empêcher le scroll sur iOS
+        document.addEventListener('touchmove', preventScroll, { passive: false });
     }
 
     /**
      * Ferme le menu mobile et restaure la position de scroll
      */
     function closeMobileMenu() {
+        // Retirer les classes
         burger.classList.remove('header__burger--active');
         burger.setAttribute('aria-expanded', 'false');
         nav.classList.remove('nav--open');
+        header.classList.remove('menu-is-open');
         document.body.classList.remove('menu-open');
+
+        // Rétablir le style du body
         document.body.style.top = '';
-        window.scrollTo(0, scrollPosition);
+
+        // Restaurer la position de scroll
+        window.scrollTo({
+            top: scrollPosition,
+            left: 0,
+            behavior: 'instant'
+        });
+
+        // Réactiver le scroll sur iOS
+        document.removeEventListener('touchmove', preventScroll);
     }
 
     if (burger && nav) {
+        // Gestionnaire de clic sur le burger
         burger.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -727,22 +761,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // Fermer le menu au clic sur un lien
         document.querySelectorAll('.nav__link').forEach(function(link) {
             link.addEventListener('click', function(e) {
+                // Si le menu n'est pas ouvert, ne rien faire de spécial
+                if (!nav.classList.contains('nav--open')) {
+                    return;
+                }
+
                 const href = this.getAttribute('href');
 
                 // Si c'est un lien vers une section de la page actuelle
                 if (href && href.startsWith('#')) {
                     e.preventDefault();
+                    const targetSection = document.querySelector(href);
+
                     closeMobileMenu();
 
                     // Attendre la fermeture du menu avant de scroller
-                    setTimeout(function() {
-                        const target = document.querySelector(href);
-                        if (target) {
-                            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }, 300);
+                    if (targetSection) {
+                        setTimeout(function() {
+                            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 350);
+                    }
                 } else {
-                    // Lien externe (autre page), fermer simplement le menu
+                    // Lien vers une autre page
                     closeMobileMenu();
                 }
             });
@@ -755,7 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Fermer le menu en cliquant en dehors (sur le fond)
+        // Fermer le menu en cliquant sur le fond (pas sur les liens)
         nav.addEventListener('click', function(e) {
             if (e.target === nav) {
                 closeMobileMenu();
