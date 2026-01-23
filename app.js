@@ -298,6 +298,29 @@ async function fetchGoogleSheetsData() {
 }
 
 /**
+ * Parse une heure au format Google Sheets Date(year,month,day,hour,min,sec)
+ * et retourne une chaîne "HH:MM" ou la valeur originale si non parsable
+ */
+function parseGoogleTime(timeValue) {
+    if (!timeValue) return '';
+    
+    // Si c'est déjà une chaîne simple (ex: "16:00", "16h00")
+    if (typeof timeValue === 'string') {
+        // Format Google Date(year,month,day,hour,min,sec)
+        const match = timeValue.match(/Date\(\d+,\d+,\d+,(\d+),(\d+),?(\d*)\)/);
+        if (match) {
+            const hours = match[1].padStart(2, '0');
+            const minutes = match[2].padStart(2, '0');
+            return `${hours}h${minutes}`;
+        }
+        // Retourner tel quel si c'est déjà formaté
+        return timeValue;
+    }
+    
+    return String(timeValue);
+}
+
+/**
  * Parse une ligne du Google Sheets en objet événement
  */
 function parseEventRow(cells) {
@@ -347,12 +370,12 @@ if (typeof dateValue === 'string') {
     }
     
     return {
-        date: date,
-        nom: nom,
-        heureDebut: cells[2]?.v || '',
-        heureFin: cells[3]?.v || '',
-        details: cells[4]?.v || ''
-    };
+    date: date,
+    nom: cells[1]?.v || '',
+    heureDebut: parseGoogleTime(cells[2]?.v),
+    heureFin: parseGoogleTime(cells[3]?.v),
+    details: cells[4]?.v || ''
+};
 }
 
 /**
