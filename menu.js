@@ -349,13 +349,24 @@ function showError(message) {
 
 /**
  * Rendu du menu avec les filtres appliqués
+ * VERSION CORRIGÉE avec debug
  */
 function renderMenu() {
+    console.log('[Menu] renderMenu() appelée');
+    console.log('[Menu] menuData:', menuData);
+    console.log('[Menu] currentFilter:', currentFilter);
+    
     const container = document.getElementById('menu-container');
+    if (!container) {
+        console.error('[Menu] Container #menu-container non trouvé!');
+        return;
+    }
     
     let filteredData = currentFilter === 'all' 
         ? menuData 
         : menuData.filter(item => item.categorie === currentFilter);
+    
+    console.log('[Menu] filteredData:', filteredData.length, 'items');
     
     filteredData.sort((a, b) => {
         const orderA = parseInt(a.ordre) || 999;
@@ -363,6 +374,7 @@ function renderMenu() {
         return orderA - orderB;
     });
     
+    // Grouper par catégorie
     const grouped = {};
     filteredData.forEach(item => {
         const cat = item.categorie || 'Autres';
@@ -372,11 +384,17 @@ function renderMenu() {
         grouped[cat].push(item);
     });
     
+    console.log('[Menu] Catégories groupées:', Object.keys(grouped));
+    
+    // Ordre des catégories
     const categoryOrder = ['Finger Food', 'Assiettes du Marché', 'Desserts'];
     
     let html = '';
     
+    // D'abord les catégories dans l'ordre défini
     categoryOrder.forEach(category => {
+        console.log('[Menu] Vérification catégorie:', category, '- trouvée:', !!grouped[category]);
+        
         if (grouped[category] && grouped[category].length > 0) {
             const catConfig = MENU_CONFIG.categories[category] || { emoji: '🍽️', horaires: '' };
             
@@ -402,6 +420,7 @@ function renderMenu() {
         }
     });
     
+    // Puis les autres catégories non définies dans l'ordre
     Object.keys(grouped).forEach(category => {
         if (!categoryOrder.includes(category) && grouped[category].length > 0) {
             html += `
@@ -425,7 +444,10 @@ function renderMenu() {
         }
     });
     
+    console.log('[Menu] HTML généré, longueur:', html.length);
+    
     if (html === '') {
+        console.warn('[Menu] Aucun HTML généré!');
         html = `
             <div class="carte-error">
                 <div class="carte-error__icon">🍽️</div>
@@ -436,6 +458,7 @@ function renderMenu() {
     }
     
     container.innerHTML = html;
+    console.log('[Menu] HTML injecté dans le container');
 }
 
 /**
@@ -444,14 +467,14 @@ function renderMenu() {
 function renderMenuItem(item) {
     const prix = formatPrice(item.prix, item.unite);
     const tempsPrep = item.temps_preparation 
-        ? `<span class="menu-item__millesime">⏱️ ${escapeHtml(item.temps_preparation)}</span>` 
+        ? `<span class="menu-item__millesime">⏱️ ${escapeHtml(String(item.temps_preparation))}</span>` 
         : '';
     
     return `
         <div class="menu-item">
             <div class="menu-item__info">
                 <span class="menu-item__name">${escapeHtml(item.nom)} ${tempsPrep}</span>
-                ${item.description ? `<span class="menu-item__domain">${escapeHtml(item.description)}</span>` : ''}
+                ${item.description ? `<span class="menu-item__domain">${escapeHtml(String(item.description))}</span>` : ''}
             </div>
             <span class="menu-item__price">${prix}</span>
         </div>
