@@ -122,7 +122,7 @@ const CONFIG = {
             //     alt: "Description",
             //     tag: "Catégorie",
             //     titre: "Titre",
-            //     type: "paysage"
+            // type: "paysage"
             // },
             image4: null,
             // Image 5 (optionnelle)
@@ -155,11 +155,14 @@ const CONFIG = {
             boutonInstagram: "Plus de photos sur Instagram"
         },
 
-        // Section Équipe
-        equipe: {
-            badge: "Passionnés",
-            titre: "L'Équipe",
-            description: "Découvrez l'équipe passionnée qui vous accueille chaque soir à La Cave."
+        // Section Agenda (remplace Équipe)
+        agenda: {
+            badge: "À venir",
+            titre: "Agenda",
+            description: "Découvrez nos prochains événements : dégustations, soirées thématiques et rencontres vigneronnes.",
+            messageVide: "Aucun événement prévu pour le moment. Restez connectés !",
+            messageErreur: "Impossible de charger les événements. Réessayez plus tard.",
+            messageChargement: "Chargement des événements..."
         },
 
         // Section Contact
@@ -170,41 +173,38 @@ const CONFIG = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 6: ÉQUIPE
+    // SECTION 6: AGENDA - CONNEXION GOOGLE SHEETS
     // ═══════════════════════════════════════════════════════════════════════
     // 
-    // Ajoutez ou supprimez des membres en copiant/collant le format ci-dessous
-    // Icônes disponibles: "person", "wine", "chef", "bartender"
+    // Pour connecter votre Google Sheets:
+    // 1. Ouvrez votre Google Sheets
+    // 2. Allez dans Fichier > Partager > Publier sur le web
+    // 3. Sélectionnez l'onglet "agenda" et format "Page Web"
+    // 4. Copiez l'ID du document (la longue chaîne dans l'URL)
+    // 5. Collez-le ci-dessous
+    // 
+    // Structure attendue du Google Sheets (onglet "agenda"):
+    // Colonne A: Date (format: JJ/MM/AAAA)
+    // Colonne B: Nom de l'événement
+    // Colonne C: Heure de début (format: HH:MM)
+    // Colonne D: Heure de fin (format: HH:MM)
+    // Colonne E: Détails/Description
     // 
     // ═══════════════════════════════════════════════════════════════════════
 
-    equipe: [
-        {
-            nom: "Mathias",
-            role: "Gérant",
-            icone: "person"
-        },
-        {
-            nom: "Valentin",
-            role: "Sommelier",
-            icone: "wine"
-        },
-        {
-            nom: "Jean-Baptiste",
-            role: "Chef de Cuisine",
-            icone: "chef"
-        },
-        {
-            nom: "Paul",
-            role: "Chef de Cuisine",
-            icone: "chef"
-        },
-        {
-            nom: "Romain",
-            role: "Barman",
-            icone: "bartender"
-        }
-    ],
+    agenda: {
+        // ID du Google Sheets (trouvable dans l'URL entre /d/ et /edit)
+        googleSheetsId: "1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4",
+        
+        // Nom de l'onglet contenant l'agenda
+        sheetName: "agenda",
+        
+        // Nombre maximum d'événements à afficher
+        maxEvents: 6,
+        
+        // Afficher uniquement les événements futurs (true) ou tous (false)
+        futureOnly: true
+    },
 
     // ═══════════════════════════════════════════════════════════════════════
     // SECTION 7: CARTE DES VINS
