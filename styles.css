@@ -1969,69 +1969,98 @@ a {
     display: inline-flex;
     align-items: center;
     gap: var(--space-sm);
-    padding: var(--space-md) var(--space-xl);
-    background: var(--color-accent);
+    padding: var(--space-sm) var(--space-lg);
+    background: rgba(198, 115, 65, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: var(--color-white);
-    border-radius: var(--radius-lg);
-    font-size: var(--size-sm);
-    font-weight: 600;
+    border-radius: var(--radius-full);
+    font-size: var(--size-xs);
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-top: -7px;
-    margin-bottom: var(--space-xl);
-    box-shadow: 0 4px 20px rgba(198, 115, 65, 0.4);
+    letter-spacing: 0.03em;
+    margin-top: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.hero__reservation:hover {
+    background: rgba(198, 115, 65, 0.8);
+    transform: translateY(-2px);
+}
+
+.hero__reservation svg {
+    width: 16px;
+    height: 16px;
+    opacity: 0.9;
 }
 
 .hero__reservation a {
     color: var(--color-white);
-    text-decoration: underline;
+    text-decoration: none;
+    font-weight: 600;
 }
 
 .hero__reservation a:hover {
-    color: var(--color-secondary);
+    text-decoration: underline;
 }
 
 .contact-reservation {
     display: flex;
     align-items: center;
     gap: var(--space-lg);
-    padding: var(--space-lg);
-    background: var(--color-accent);
+    padding: var(--space-md) var(--space-lg);
+    background: rgba(198, 115, 65, 0.75);
     color: var(--color-white);
     border-radius: var(--radius-lg);
     margin-top: var(--space-lg);
-    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(198, 115, 65, 0.3);
+    transition: background var(--transition-fast);
+}
+
+.contact-reservation:hover {
+    background: rgba(198, 115, 65, 0.85);
 }
 
 .contact-reservation svg {
     flex-shrink: 0;
+    opacity: 0.9;
 }
 
 .contact-reservation strong {
     display: block;
-    font-size: var(--size-sm);
+    font-size: var(--size-xs);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
     margin-bottom: var(--space-xs);
+    font-weight: 500;
+    opacity: 0.9;
 }
 
 .contact-reservation a {
     font-family: var(--font-display);
-    font-size: var(--size-xl);
-    font-weight: 700;
+    font-size: var(--size-lg);
+    font-weight: 600;
     color: var(--color-white);
 }
 
 .contact-reservation a:hover {
-    color: var(--color-secondary);
+    text-decoration: underline;
 }
 
 @media (max-width: 480px) {
     .hero__reservation {
         flex-direction: column;
         text-align: center;
-        padding: var(--space-md);
-        font-size: var(--size-xs);
+        padding: var(--space-sm) var(--space-md);
+        font-size: 0.65rem;
+        gap: var(--space-xs);
+    }
+
+    .hero__reservation svg {
+        width: 14px;
+        height: 14px;
     }
 }
 

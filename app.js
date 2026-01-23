@@ -170,8 +170,14 @@ function applyConfig() {
     // ═══════════════════════════════════════════════════════════════════════
     // TEXTES HERO
     // ═══════════════════════════════════════════════════════════════════════
-    
-    setElement('hero-slogan', 'textContent', CONFIG.site.slogan);
+
+    // Masquer le badge si le slogan est vide
+    if (CONFIG.site.slogan && CONFIG.site.slogan.trim() !== '') {
+        setElement('hero-slogan', 'textContent', CONFIG.site.slogan);
+    } else {
+        const badgeElement = document.querySelector('.hero__badge');
+        if (badgeElement) badgeElement.style.display = 'none';
+    }
     
     if (CONFIG.accueil && CONFIG.accueil.hero) {
         const hero = CONFIG.accueil.hero;

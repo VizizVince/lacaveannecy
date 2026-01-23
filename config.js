@@ -18,8 +18,8 @@ const CONFIG = {
     
     site: {
         nom: "La Cave Annecy",
-        slogan: "Bar à vins depuis 1987",
-        description: "Bar à vins historique d'Annecy. Plus de 400 références, 40 vins au verre et plats traditionnels.",
+        slogan: "",
+        description: "Bar à vins historique d'Annecy. Plus de 1000 références de vins et produits frais du marché.",
         annee: "2025"
     },
 
@@ -106,15 +106,15 @@ const CONFIG = {
         hero: {
             titreLigne1: "LA CAVE",
             titreLigne2: "Annecy",
-            sousTitre: "Une expérience unique au cœur d'Annecy",
-            description: "Avec plus de <strong>400 références</strong> dans notre cave, plus de <strong>40 vins au verre</strong> et des plats traditionnels préparés avec passion, La Cave vous accueille du <strong>Lundi au Samedi à partir de 18h00</strong>.",
+            sousTitre: "Bar à vins depuis 1987 - Un lieu confidentiel et unique sur Annecy",
+            description: "Plus de <strong>1000 références de vins</strong>, une sélection de <strong>produits frais du marché du jour</strong> préparées par notre chef. À partager sans modération. <strong>On vous attends !</strong>",
             boutonCarte: "Découvrir la carte",
             boutonContact: "Nous trouver"
         },
         galerie: {
             badge: "Notre univers",
             titre: "Galerie",
-            description: "Plongez dans l'atmosphère chaleureuse de La Cave, entre vins d'exception et plats savoureux.",
+            description: "Plongez dans l'ambiance festive et conviviale de La Cave, entre vins d'exception et plats savoureux.",
             boutonInstagram: "Plus de photos sur Instagram"
         },
         agenda: {
