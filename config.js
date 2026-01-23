@@ -57,47 +57,18 @@ const CONFIG = {
     // ═══════════════════════════════════════════════════════════════════════
     // SECTION 4: IMAGES
     // ═══════════════════════════════════════════════════════════════════════
-    // 
-    // GUIDE DES TAILLES D'IMAGES RECOMMANDÉES:
-    // 
-    // ┌─────────────────────────────────────────────────────────────────────┐
-    // │ Image              │ Taille recommandée │ Format  │ Notes          │
-    // ├─────────────────────────────────────────────────────────────────────┤
-    // │ Logo               │ 200x200 px         │ JPG/PNG │ Carré          │
-    // │ Hero (fond)        │ 1920x1080 px       │ JPG     │ Paysage        │
-    // │ Galerie portrait   │ 800x1200 px        │ JPG     │ Portrait       │
-    // │ Galerie paysage    │ 800x600 px         │ JPG     │ Paysage 4:3    │
-    // └─────────────────────────────────────────────────────────────────────┘
-    //
-    // CONSEIL: Optimisez vos images avec tinypng.com avant de les utiliser
-    // 
-    // ═══════════════════════════════════════════════════════════════════════
 
     images: {
-        // Logo du site (affiché dans le header et footer)
-        // Taille: 200x200px, Format: JPG ou PNG
         logo: "./images/logo.jpg",
-
-        // Image de fond de la section Hero (page d'accueil)
-        // Taille: 1920x1080px minimum, Format: JPG
-        // Cette image apparaît en fond avec un overlay sombre
         heroBackground: "./images/hero-bg.jpg",
-
-        // Images de la galerie (jusqu'à 6 images)
-        // Pour désactiver une image, mettez null
-        // Pour activer une image, remplacez null par un objet avec src, alt, tag, titre, type
         galerie: {
-            // Image 1 (portrait recommandé pour la première image)
-            // Taille: 800x1200px (portrait), Format: JPG
             image1: {
                 src: "./images/galerie-1.jpg",
                 alt: "Sélection de vins",
                 tag: "Vins",
                 titre: "Notre Sélection",
-                type: "portrait"  // "portrait" ou "paysage"
+                type: "portrait"
             },
-            // Image 2 (paysage)
-            // Taille: 800x600px (paysage 4:3), Format: JPG
             image2: {
                 src: "./images/galerie-2.jpg",
                 alt: "Plat du jour",
@@ -105,8 +76,6 @@ const CONFIG = {
                 titre: "Nos Plats",
                 type: "paysage"
             },
-            // Image 3 (paysage)
-            // Taille: 800x600px (paysage 4:3), Format: JPG
             image3: {
                 src: "./images/galerie-3.jpg",
                 alt: "Ambiance du bar",
@@ -114,20 +83,8 @@ const CONFIG = {
                 titre: "Notre Univers",
                 type: "paysage"
             },
-            // Image 4 (optionnelle)
-            // Pour activer: remplacez null par un objet comme ci-dessus
-            // Exemple:
-            // image4: {
-            //     src: "./images/galerie-4.jpg",
-            //     alt: "Description",
-            //     tag: "Catégorie",
-            //     titre: "Titre",
-            // type: "paysage"
-            // },
             image4: null,
-            // Image 5 (optionnelle)
             image5: null,
-            // Image 6 (optionnelle)
             image6: null
         }
     },
@@ -137,7 +94,6 @@ const CONFIG = {
     // ═══════════════════════════════════════════════════════════════════════
     
     accueil: {
-        // Section Hero (en-tête principal)
         hero: {
             titreLigne1: "LA CAVE",
             titreLigne2: "Annecy",
@@ -146,16 +102,12 @@ const CONFIG = {
             boutonCarte: "Découvrir la carte",
             boutonContact: "Nous trouver"
         },
-
-        // Section Galerie
         galerie: {
             badge: "Notre univers",
             titre: "Galerie",
             description: "Plongez dans l'atmosphère chaleureuse de La Cave, entre vins d'exception et plats savoureux.",
             boutonInstagram: "Plus de photos sur Instagram"
         },
-
-        // Section Agenda (remplace Équipe)
         agenda: {
             badge: "À venir",
             titre: "Agenda",
@@ -164,8 +116,6 @@ const CONFIG = {
             messageErreur: "Impossible de charger les événements. Réessayez plus tard.",
             messageChargement: "Chargement des événements..."
         },
-
-        // Section Contact
         contact: {
             badge: "Rendez-vous",
             titre: "Nous Trouver"
@@ -175,52 +125,44 @@ const CONFIG = {
     // ═══════════════════════════════════════════════════════════════════════
     // SECTION 6: AGENDA - CONNEXION GOOGLE SHEETS
     // ═══════════════════════════════════════════════════════════════════════
-    // 
-    // Pour connecter votre Google Sheets:
-    // 1. Ouvrez votre Google Sheets
-    // 2. Allez dans Fichier > Partager > Publier sur le web
-    // 3. Sélectionnez l'onglet "agenda" et format "Page Web"
-    // 4. Copiez l'ID du document (la longue chaîne dans l'URL)
-    // 5. Collez-le ci-dessous
-    // 
-    // Structure attendue du Google Sheets (onglet "agenda"):
-    // Colonne A: Date (format: JJ/MM/AAAA)
-    // Colonne B: Nom de l'événement
-    // Colonne C: Heure de début (format: HH:MM)
-    // Colonne D: Heure de fin (format: HH:MM)
-    // Colonne E: Détails/Description
-    // 
-    // ═══════════════════════════════════════════════════════════════════════
 
     agenda: {
-        // ID du Google Sheets (trouvable dans l'URL entre /d/ et /edit)
         googleSheetsId: "1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4",
-        
-        // Nom de l'onglet contenant l'agenda
         sheetName: "agenda",
-        
-        // Nombre maximum d'événements à afficher
         maxEvents: 6,
-        
-        // Afficher uniquement les événements futurs (true) ou tous (false)
         futureOnly: true
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 7: CARTE DES VINS
+    // SECTION 7: CARTE DES VINS - CONNEXION GOOGLE SHEETS
     // ═══════════════════════════════════════════════════════════════════════
     // 
-    // Structure de la carte:
-    // - Chaque région a un id, nom, emoji et sous-titre
-    // - Chaque région contient des catégories (Blancs, Rouges, etc.)
-    // - Chaque catégorie contient des vins avec nom, domaine et prix
+    // La carte des vins est maintenant chargée depuis Google Sheets !
     // 
-    // Pour ajouter un vin:
-    // { nom: "Nom du vin", domaine: "Nom du domaine", prix: "XX €" }
+    // Pour configurer:
+    // 1. Créez un onglet "Carte des Vins" dans votre Google Sheets
+    // 2. Publiez-le sur le web (Fichier > Partager > Publier sur le web)
+    // 3. Vérifiez que l'ID ci-dessous est correct
+    // 
+    // Structure des colonnes (voir GUIDE-CARTE-GOOGLE-SHEETS.md):
+    // categorie | sous_categorie | nom | domaine | millesime | description | prix_verre | prix_bouteille | disponible | ordre
+    //
+    // Cache: Les données sont mises en cache 1h dans le navigateur
+    // Rafraîchir: Ajoutez ?refresh=1 à l'URL pour forcer la mise à jour
     // 
     // ═══════════════════════════════════════════════════════════════════════
 
     carte: {
+        // Connexion Google Sheets
+        googleSheets: {
+            // ID du Google Sheets (le même que pour l'agenda ou un autre)
+            // Trouvable dans l'URL entre /d/ et /edit
+            id: "1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4",
+            
+            // Nom de l'onglet contenant la carte des vins
+            sheetName: "Carte des Vins"
+        },
+
         // Textes de la page Carte
         page: {
             badge: "Plus de 400 références",
@@ -234,11 +176,12 @@ const CONFIG = {
             ligne2: "Carte sujette à modifications selon les arrivages et les saisons."
         },
 
-        // Régions et vins
+        // ═══════════════════════════════════════════════════════════════════
+        // FALLBACK: Données statiques (utilisées si Google Sheets échoue)
+        // Ces données ne seront utilisées qu'en cas d'erreur de chargement
+        // ═══════════════════════════════════════════════════════════════════
+        
         regions: [
-            // ─────────────────────────────────────────────────────────────
-            // BULLES (Champagnes, Crémants)
-            // ─────────────────────────────────────────────────────────────
             {
                 id: "bulles",
                 nom: "Les Bulles",
@@ -250,26 +193,18 @@ const CONFIG = {
                         vins: [
                             { nom: "Grande Réserve, Brut NM", domaine: "Domaine Dehours", prix: "72 €" },
                             { nom: "Bouzy Grand Cru, Les Parcelles", domaine: "Pierre Paillard", prix: "74 €" },
-                            { nom: "Fosse Grély, Brut Nature 2017", domaine: "Ruppert Leroy", prix: "92 €" },
-                            { nom: "Blanc d'Argile R19, Brut Nature NM", domaine: "Vouette et Sorbée", prix: "195 €" },
-                            { nom: "Largillier, Extra-Brut NM", domaine: "Guillaume Selosse", prix: "300 €" }
+                            { nom: "Fosse Grély, Brut Nature 2017", domaine: "Ruppert Leroy", prix: "92 €" }
                         ]
                     },
                     {
                         nom: "Crémants & Pétillants",
                         vins: [
                             { nom: "Crémant du Jura 2018", domaine: "Guillaume Overnoy", prix: "40 €" },
-                            { nom: "Crémant de Bourgogne, Cuvée Z 2020", domaine: "Le Domaine d'Édouard", prix: "43 €" },
-                            { nom: "Montlouis, Triple Zéro NM", domaine: "La Taille aux Loups", prix: "48 €" },
-                            { nom: "Bugey Cerdon 2.6.15 NM", domaine: "La Cuverie d'Aurélien", prix: "27 €" }
+                            { nom: "Crémant de Bourgogne, Cuvée Z 2020", domaine: "Le Domaine d'Édouard", prix: "43 €" }
                         ]
                     }
                 ]
             },
-
-            // ─────────────────────────────────────────────────────────────
-            // SAVOIE
-            // ─────────────────────────────────────────────────────────────
             {
                 id: "savoie",
                 nom: "Savoie",
@@ -280,200 +215,14 @@ const CONFIG = {
                         nom: "Blancs",
                         vins: [
                             { nom: "IGP Allobroges, Quartz 2022", domaine: "Domaine des Ardoisières", prix: "165 €" },
-                            { nom: "IGP Allobroges, Schiste 2022", domaine: "Domaine des Ardoisières", prix: "83 €" },
-                            { nom: "Roussette de Savoie 2020", domaine: "Domaine du Chevillard", prix: "65 €" },
-                            { nom: "Chignin-Bergeron, Vesta 2021", domaine: "Domaine de l'Aitonnement", prix: "76 €" }
+                            { nom: "Roussette de Savoie 2020", domaine: "Domaine du Chevillard", prix: "65 €" }
                         ]
                     },
                     {
                         nom: "Rouges",
                         vins: [
                             { nom: "IGP Allobroges, Améthyste 2018", domaine: "Domaine des Ardoisières", prix: "113 €" },
-                            { nom: "Coteau de la Mort 2021", domaine: "Domaine des Côtes Rousses", prix: "64 €" },
-                            { nom: "IGP Allobroges, Dark Side 2021", domaine: "Domaine de l'Aitonnement", prix: "75 €" },
-                            { nom: "Côte Pelée 2017", domaine: "Jean-Yves Péron", prix: "72 €" }
-                        ]
-                    }
-                ]
-            },
-
-            // ─────────────────────────────────────────────────────────────
-            // LOIRE
-            // ─────────────────────────────────────────────────────────────
-            {
-                id: "loire",
-                nom: "Vallée de la Loire",
-                emoji: "🌊",
-                sousTitre: "Chenin, Muscadet, Sancerre, Cabernet Franc",
-                categories: [
-                    {
-                        nom: "Blancs",
-                        vins: [
-                            { nom: "Saumur, l'Échelier 2021", domaine: "Domaine des Roches Neuves", prix: "86 €" },
-                            { nom: "Saumur, Brézé 2020", domaine: "Domaine Guiberteau", prix: "101 €" },
-                            { nom: "Silex 2018", domaine: "Domaine Didier Dagueneau", prix: "217 €" }
-                        ]
-                    },
-                    {
-                        nom: "Rouges",
-                        vins: [
-                            { nom: "Saumur-Champigny, Franc de Pied 2021", domaine: "Domaine des Roches Neuves", prix: "62 €" },
-                            { nom: "Saumur-Champigny, Le Bourg 2016", domaine: "Clos Rougeard", prix: "342 €" },
-                            { nom: "Chinon, Les Folies du Noyer Vert 2020", domaine: "Domaine de l'R", prix: "39 €" }
-                        ]
-                    }
-                ]
-            },
-
-            // ─────────────────────────────────────────────────────────────
-            // BOURGOGNE
-            // ─────────────────────────────────────────────────────────────
-            {
-                id: "bourgogne",
-                nom: "Bourgogne",
-                emoji: "🍇",
-                sousTitre: "Pinot Noir & Chardonnay • Chablis, Côte de Nuits",
-                categories: [
-                    {
-                        nom: "Blancs",
-                        vins: [
-                            { nom: "Chablis Grand Cru, Valmur 2021", domaine: "Jean-Paul et Benoit Droin", prix: "122 €" },
-                            { nom: "Meursault, Clos du Cromin 2020", domaine: "Domaine Genot Boulanger", prix: "151 €" }
-                        ]
-                    },
-                    {
-                        nom: "Rouges",
-                        vins: [
-                            { nom: "Gevrey-Chambertin, Mes 5 Terroirs 2021", domaine: "Domaine Denis Mortet", prix: "220 €" },
-                            { nom: "Clos Vougeot Grand Cru 2016", domaine: "Domaine Denis Mortet", prix: "566 €" },
-                            { nom: "Chambolle-Musigny 2020", domaine: "Domaine Thierry Mortet", prix: "119 €" }
-                        ]
-                    }
-                ]
-            },
-
-            // ─────────────────────────────────────────────────────────────
-            // BEAUJOLAIS
-            // ─────────────────────────────────────────────────────────────
-            {
-                id: "beaujolais",
-                nom: "Beaujolais",
-                emoji: "🍒",
-                sousTitre: "Gamay • Morgon, Fleurie, Moulin-à-Vent",
-                categories: [
-                    {
-                        nom: "Crus du Beaujolais",
-                        vins: [
-                            { nom: "Morgon, Côte de Py 2021", domaine: "Domaine Foillard", prix: "61 €" },
-                            { nom: "Fleurie, Printemps 2020", domaine: "Yvon Métras", prix: "87 €" },
-                            { nom: "Moulin-à-Vent 2020", domaine: "Yvon Métras", prix: "95 €" }
-                        ]
-                    },
-                    {
-                        nom: "Beaujolais Villages",
-                        vins: [
-                            { nom: "Beaujolais Villages 2021", domaine: "Alex Foillard", prix: "33 €" },
-                            { nom: "Beaujolais, Madame Placard 2020", domaine: "Yvon Métras", prix: "60 €" }
-                        ]
-                    }
-                ]
-            },
-
-            // ─────────────────────────────────────────────────────────────
-            // RHÔNE
-            // ─────────────────────────────────────────────────────────────
-            {
-                id: "rhone",
-                nom: "Vallée du Rhône",
-                emoji: "☀️",
-                sousTitre: "Syrah & Grenache • Côte-Rôtie, Châteauneuf",
-                categories: [
-                    {
-                        nom: "Rhône Nord",
-                        vins: [
-                            { nom: "Côte-Rôtie, Les Rochins 2016", domaine: "Domaine Garon", prix: "120 €" },
-                            { nom: "Saint-Joseph 2021", domaine: "Domaine Jean-Louis Chave", prix: "103 €" },
-                            { nom: "Condrieu, Deponcins 2021", domaine: "Domaine François Villard", prix: "95 €" }
-                        ]
-                    },
-                    {
-                        nom: "Rhône Sud",
-                        vins: [
-                            { nom: "Châteauneuf-du-Pape 2014", domaine: "Domaine Henri Bonneau", prix: "338 €" },
-                            { nom: "Châteauneuf, Vieilles Vignes 2018", domaine: "Domaine de la Janasse", prix: "201 €" }
-                        ]
-                    }
-                ]
-            },
-
-            // ─────────────────────────────────────────────────────────────
-            // BORDEAUX
-            // ─────────────────────────────────────────────────────────────
-            {
-                id: "bordeaux",
-                nom: "Bordelais",
-                emoji: "🏰",
-                sousTitre: "Grands Crus • Pauillac, Saint-Émilion, Pomerol",
-                categories: [
-                    {
-                        nom: "Rive Gauche & Droite",
-                        vins: [
-                            { nom: "Pauillac, 1er Grand Cru Classé 2004", domaine: "Château Mouton Rothschild", prix: "720 €" },
-                            { nom: "Saint-Émilion Grand Cru 2018", domaine: "Château Tertre Roteboeuf", prix: "507 €" },
-                            { nom: "Pomerol 2018", domaine: "Château Enclos Haut-Mazeyres", prix: "110 €" },
-                            { nom: "Côtes de Bourg 2019", domaine: "Roc de Cambes", prix: "191 €" }
-                        ]
-                    }
-                ]
-            },
-
-            // ─────────────────────────────────────────────────────────────
-            // AUTRES RÉGIONS
-            // ─────────────────────────────────────────────────────────────
-            {
-                id: "autres",
-                nom: "Autres Régions",
-                emoji: "🌍",
-                sousTitre: "Jura, Alsace, Provence, Languedoc, Corse",
-                categories: [
-                    {
-                        nom: "Jura & Alsace",
-                        vins: [
-                            { nom: "Côtes du Jura, Montferrand 2019", domaine: "Jean-François Ganevat", prix: "101 €" },
-                            { nom: "Alsace Riesling, Scherwiller 2020", domaine: "Domaine Achillée", prix: "55 €" }
-                        ]
-                    },
-                    {
-                        nom: "Sud & Corse",
-                        vins: [
-                            { nom: "IGP Alpilles 2021", domaine: "Domaine de Trévallon", prix: "161 €" },
-                            { nom: "Patrimonio, E Croce 2021", domaine: "Domaine Yves Leccia", prix: "59 €" }
-                        ]
-                    }
-                ]
-            },
-
-            // ─────────────────────────────────────────────────────────────
-            // BIÈRES
-            // ─────────────────────────────────────────────────────────────
-            {
-                id: "bieres",
-                nom: "Bières Artisanales",
-                emoji: "🍺",
-                sousTitre: "Locales & Sauvages",
-                categories: [
-                    {
-                        nom: "Brasserie du Mont Salève",
-                        vins: [
-                            { nom: "Blanche", domaine: "Neydens (74)", prix: "14 €" },
-                            { nom: "Mademoiselle IPA", domaine: "Neydens (74)", prix: "14 €" }
-                        ]
-                    },
-                    {
-                        nom: "Brasserie Mosaïque",
-                        vins: [
-                            { nom: "Country Roads (Piquette)", domaine: "Riotord (43)", prix: "22,50 €" },
-                            { nom: "Yellow Lemon Tree", domaine: "Riotord (43)", prix: "22,50 €" }
+                            { nom: "Coteau de la Mort 2021", domaine: "Domaine des Côtes Rousses", prix: "64 €" }
                         ]
                     }
                 ]
@@ -490,10 +239,6 @@ const CONFIG = {
         avertissement: "L'abus d'alcool est dangereux pour la santé. À consommer avec modération."
     }
 };
-
-// ═══════════════════════════════════════════════════════════════════════════
-// NE PAS MODIFIER EN DESSOUS DE CETTE LIGNE
-// ═══════════════════════════════════════════════════════════════════════════
 
 // Export pour utilisation dans les pages HTML
 if (typeof module !== 'undefined' && module.exports) {
