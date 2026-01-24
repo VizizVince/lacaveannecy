@@ -2316,20 +2316,15 @@ a {
     stroke: var(--color-secondary);
 }
 
-.hero__google-rating-stars svg.star-half {
-    fill: url(#star-gradient);
+.hero__google-rating-stars svg.star-partial {
+    color: var(--color-secondary);
     stroke: var(--color-secondary);
+    stroke-width: 1;
 }
 
 .hero__google-rating-stars svg.star-empty {
     fill: none;
     stroke: rgba(255, 255, 255, 0.5);
-}
-
-.hero__google-rating-note {
-    font-family: var(--font-display);
-    font-weight: 600;
-    color: var(--color-secondary);
 }
 
 .hero__google-rating-separator {

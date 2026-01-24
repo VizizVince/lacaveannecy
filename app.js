@@ -249,14 +249,8 @@ function applyGoogleReviewsData(data) {
 
     const heroStars = document.getElementById('hero-rating-stars');
     if (heroStars && data.noteGlobale) {
-        heroStars.innerHTML = generateStars(data.noteGlobale);
-    }
-
-    const heroNote = document.getElementById('hero-rating-note');
-    if (heroNote && data.noteGlobale) {
-        // Formater avec virgule pour l'affichage français
-        const noteFormatted = data.noteGlobale.toFixed(1).replace('.', ',');
-        heroNote.textContent = `${noteFormatted}/5`;
+        // Générer les étoiles avec support des étoiles partielles
+        heroStars.innerHTML = generateStars(data.noteGlobale, '', true);
     }
 
     const heroCount = document.getElementById('hero-rating-count');
@@ -321,26 +315,46 @@ function applyGoogleReviewsData(data) {
 
 /**
  * Génère les étoiles HTML pour une note donnée (sur 5)
- * Arrondit à l'entier le plus proche (pas de demi-étoiles)
+ * Supporte les étoiles partielles (ex: 4.7 = 4 pleines + 1 à 70% + 0 vides)
  * @param {number} rating - Note de 0 à 5
  * @param {string} cssClass - Classe CSS additionnelle (optionnel)
+ * @param {boolean} allowPartial - Autoriser les étoiles partielles (défaut: true)
  * @returns {string} - HTML des étoiles
  */
-function generateStars(rating, cssClass = '') {
+function generateStars(rating, cssClass = '', allowPartial = true) {
     // Valider et contraindre la note entre 0 et 5
     const validRating = sanitizeNumber(rating, 0, 5, 0);
-    // Arrondir à l'entier le plus proche (4.3 → 4, 4.7 → 5)
-    const roundedRating = Math.round(validRating);
-    const fullStars = Math.min(Math.max(roundedRating, 0), 5); // 0-5 étoiles
-    const emptyStars = 5 - fullStars;
     // Échapper la classe CSS pour éviter les injections
     const safeCssClass = cssClass ? escapeHtml(cssClass) : '';
+
+    // Calculer les étoiles
+    const fullStars = Math.floor(validRating);
+    const partialFill = validRating - fullStars; // 0.0 à 0.99
+    const hasPartial = allowPartial && partialFill > 0.1; // Seuil minimum pour afficher une étoile partielle
+    const emptyStars = 5 - fullStars - (hasPartial ? 1 : 0);
+
+    // ID unique pour le gradient (éviter les conflits)
+    const gradientId = `star-gradient-${Math.random().toString(36).substr(2, 9)}`;
 
     let html = '';
 
     // Étoiles pleines
     for (let i = 0; i < fullStars; i++) {
         html += `<svg class="${safeCssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+    }
+
+    // Étoile partielle (avec gradient)
+    if (hasPartial) {
+        const percentage = Math.round(partialFill * 100);
+        html += `<svg class="${safeCssClass} star-partial" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <defs>
+                <linearGradient id="${gradientId}">
+                    <stop offset="${percentage}%" stop-color="currentColor"/>
+                    <stop offset="${percentage}%" stop-color="transparent"/>
+                </linearGradient>
+            </defs>
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#${gradientId})" stroke="currentColor" stroke-width="1"/>
+        </svg>`;
     }
 
     // Étoiles vides
