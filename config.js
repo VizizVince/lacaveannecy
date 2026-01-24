@@ -41,7 +41,14 @@ const CONFIG = {
             url: "https://instagram.com/lacave_annecy"
         },
         // Lien Google Maps embed (obtenu depuis Google Maps > Partager > Intégrer)
-        googleMapsEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2779.5!2d6.126!3d45.899!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478b8ff85e945555%3A0x4d3c0a3a1d3c0a3a!2s8%20Rue%20du%20P%C3%A2quier%2C%2074000%20Annecy!5e0!3m2!1sfr!2sfr!4v1705000000000!5m2!1sfr!2sfr"
+        googleMapsEmbed: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2779.5!2d6.126!3d45.899!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x478b8ff85e945555%3A0x4d3c0a3a1d3c0a3a!2s8%20Rue%20du%20P%C3%A2quier%2C%2074000%20Annecy!5e0!3m2!1sfr!2sfr!4v1705000000000!5m2!1sfr!2sfr",
+
+        // Avis Google (note sur 5 et nombre d'avis)
+        googleReviews: {
+            note: 4.8,
+            nombreAvis: 638,
+            url: "https://www.google.com/maps/place/La+Cave+Annecy/@45.899,6.126,17z/data=!4m8!3m7!1s0x478b8ff85e945555:0x4d3c0a3a1d3c0a3a!8m2!3d45.899!4d6.126!9m1!1b1!16s"
+        }
     },
 
     // ═══════════════════════════════════════════════════════════════════════

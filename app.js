@@ -129,7 +129,12 @@ function applyConfig() {
         
         // Google Maps
         setElement('contact-map', 'src', c.googleMapsEmbed);
-        
+
+        // Google Reviews
+        if (c.googleReviews) {
+            applyGoogleReviews(c.googleReviews);
+        }
+
         // Horaires dans contact
         if (CONFIG.horaires) {
             const horairesHtml = `${CONFIG.horaires.jours}<br>${CONFIG.horaires.heures}`;
@@ -513,6 +518,60 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+/**
+ * Génère les étoiles HTML en fonction de la note
+ * @param {number} rating - Note sur 5
+ * @param {number} maxStars - Nombre maximum d'étoiles (défaut: 5)
+ * @returns {string} - HTML des étoiles
+ */
+function generateStars(rating, maxStars = 5) {
+    const fullStars = Math.floor(rating);
+    const hasHalf = (rating % 1) >= 0.3 && (rating % 1) < 0.8;
+    const halfStar = hasHalf ? 1 : 0;
+    const emptyStars = maxStars - fullStars - halfStar;
+
+    let starsHtml = '';
+
+    // Étoiles pleines
+    for (let i = 0; i < fullStars; i++) {
+        starsHtml += '<span class="star star--full">★</span>';
+    }
+
+    // Demi-étoile (si applicable)
+    if (hasHalf) {
+        starsHtml += '<span class="star star--half">★</span>';
+    }
+
+    // Étoiles vides
+    for (let i = 0; i < emptyStars; i++) {
+        starsHtml += '<span class="star star--empty">☆</span>';
+    }
+
+    return starsHtml;
+}
+
+/**
+ * Applique les données Google Reviews au DOM
+ * @param {Object} googleReviews - Objet contenant note, nombreAvis, url
+ */
+function applyGoogleReviews(googleReviews) {
+    const starsContainer = document.getElementById('google-reviews-stars');
+    const countElement = document.getElementById('google-reviews-count');
+    const linkElement = document.getElementById('google-reviews-link');
+
+    if (starsContainer) {
+        starsContainer.innerHTML = generateStars(googleReviews.note);
+    }
+
+    if (countElement) {
+        countElement.textContent = `${googleReviews.nombreAvis} avis Google`;
+    }
+
+    if (linkElement && googleReviews.url) {
+        linkElement.href = googleReviews.url;
+    }
 }
 
 /**
