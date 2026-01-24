@@ -1,91 +1,107 @@
-# 🍷 La Cave Annecy - Guide de Modification
+# La Cave Annecy - Guide de Modification
 
 Ce guide vous explique comment modifier facilement tous les éléments du site web.
 
 ---
 
-## 📁 Structure des fichiers
+## Structure des fichiers
 
 ```
 la-cave-annecy/
 │
-├── 📄 config.js        ← FICHIER PRINCIPAL À MODIFIER
-├── 📄 index.html       ← Page d'accueil
-├── 📄 carte.html       ← Page de la carte des vins
-├── 📄 styles.css       ← Styles visuels
-├── 📄 app.js           ← Script page d'accueil (ne pas modifier)
-├── 📄 carte.js         ← Script page carte (ne pas modifier)
+├── config.js           ← FICHIER PRINCIPAL À MODIFIER
+├── index.html          ← Page d'accueil
+├── carte.html          ← Page de la carte des vins
+├── menu.html           ← Page du menu
+├── styles.css          ← Styles visuels
+├── app.js              ← Script page d'accueil
+├── carte.js            ← Script page carte
+├── menu.js             ← Script page menu
+├── sheets-loader.js    ← Chargeur Google Sheets
 │
-└── 📁 images/          ← DOSSIER DES IMAGES
+└── images/             ← DOSSIER DES IMAGES ET VIDÉOS
     ├── logo.jpg
-    ├── hero-bg.jpg
-    ├── galerie-1.jpg
-    ├── galerie-2.jpg
-    └── galerie-3.jpg
+    ├── hero-bg.jpg     (ou hero-bg.mp4 pour une vidéo)
+    ├── galerie1.jpg    (ou galerie1.mp4)
+    ├── galerie2.jpg
+    └── galerie3.jpg
 ```
 
 ---
 
-## ⚡ Modification rapide
+## Modification rapide
 
 **Pour modifier le site, ouvrez uniquement le fichier `config.js`** dans un éditeur de texte (Notepad++, VS Code, ou même le Bloc-notes).
 
 ---
 
-## 📅 Configurer l'Agenda (Google Sheets)
+## Sources de données Google Sheets
 
-La section Agenda affiche automatiquement les événements depuis votre Google Sheets.
+Le site utilise **4 onglets** dans votre Google Sheets :
 
-### Étape 1 : Préparer le Google Sheets
+| Onglet | Contenu | Mise à jour |
+|--------|---------|-------------|
+| `Carte des Vins` | Liste des vins | Automatique (1h) |
+| `Menu` | Plats et boissons | Automatique (1h) |
+| `agenda` | Événements à venir | Automatique (1h) |
+| `Notes Google` | Avis clients | Automatique (1h) |
 
-Votre Google Sheets doit avoir un onglet nommé **"agenda"** avec les colonnes suivantes :
+**Pour forcer la mise à jour immédiate :** ajoutez `?refresh=1` à l'URL.
 
-| Colonne A | Colonne B | Colonne C | Colonne D | Colonne E |
-|-----------|-----------|-----------|-----------|-----------|
+---
+
+## Configurer l'Agenda
+
+### Structure du Google Sheets
+
+Créez un onglet nommé **"agenda"** avec ces colonnes :
+
 | Date | Nom de l'événement | Heure début | Heure fin | Détails |
+|------|-------------------|-------------|-----------|---------|
 | 25/01/2025 | Dégustation Bourgogne | 19h00 | 22h00 | Avec le vigneron X |
-| 01/02/2025 | Soirée Fromages | 18h30 | 21h00 | Accords vins & fromages |
 
-### Étape 2 : Publier le Google Sheets
-
-1. Ouvrez votre Google Sheets
-2. Allez dans **Fichier → Partager → Publier sur le web**
-3. Sélectionnez l'onglet **"agenda"**
-4. Format : **Page Web**
-5. Cliquez sur **Publier**
-6. Assurez-vous aussi que le fichier est **partagé en lecture** pour "Toute personne disposant du lien"
-
-### Étape 3 : Configurer dans config.js
+### Configuration dans config.js
 
 ```javascript
 agenda: {
-    // ID du Google Sheets (trouvable dans l'URL entre /d/ et /edit)
     googleSheetsId: "VOTRE_ID_ICI",
-    
-    // Nom de l'onglet
     sheetName: "agenda",
-    
-    // Nombre maximum d'événements affichés
     maxEvents: 6,
-    
-    // Afficher uniquement les événements futurs
     futureOnly: true
 }
 ```
 
-**Pour trouver l'ID du Google Sheets :**
-Dans l'URL `https://docs.google.com/spreadsheets/d/1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4/edit`
-L'ID est : `1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4`
+---
 
-### Formats de date acceptés
+## Configurer les Avis Google
 
-- `25/01/2025` (recommandé - format français)
-- `2025-01-25` (format ISO)
-- Date native Google Sheets
+### Structure du Google Sheets
+
+Créez un onglet nommé **"Notes Google"** :
+
+| Colonne A | Colonne C | Colonne D | Colonne E | Colonne F |
+|-----------|-----------|-----------|-----------|-----------|
+| 4.8 | Nom client | 5 | Commentaire | Il y a 2 mois |
+| | Autre client | 4.5 | Son avis | Il y a 1 semaine |
+| 638 | | | | |
+
+- **Colonne A** : Placez la note globale (ex: 4.8) et le nombre d'avis (ex: 638)
+- **Colonnes C-F** : Les avis individuels
+
+### Configuration dans config.js
+
+```javascript
+googleAvis: {
+    noteGlobale: 4.7,           // Fallback si API échoue
+    nombreAvis: 638,            // Fallback si API échoue
+    lienGoogle: "https://share.google/YoMsP8MOrm8Sq2tWV",
+    topAvis: [...]              // Avis de secours
+}
+```
 
 ---
 
-## 🖼️ Changer les images
+## Changer les images et vidéos
 
 ### Tailles recommandées
 
@@ -93,41 +109,47 @@ L'ID est : `1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4`
 |-------|------------|--------|-------------|
 | `logo.jpg` | 200×200 px | JPG/PNG | Header & Footer |
 | `hero-bg.jpg` | 1920×1080 px | JPG | Fond page d'accueil |
-| `galerie-1.jpg` | 800×1200 px | JPG | Image principale galerie (portrait) |
-| `galerie-2.jpg` | 800×600 px | JPG | Image secondaire galerie |
-| `galerie-3.jpg` | 800×600 px | JPG | Image tertiaire galerie |
+| `hero-bg.mp4` | 1920×1080 px | MP4 | Vidéo de fond (optionnel) |
+| `galerie1.jpg` | 800×1200 px | JPG | Image principale galerie |
+| `galerie2.jpg` | 800×600 px | JPG | Image secondaire |
+| `galerie3.jpg` | 800×600 px | JPG | Image tertiaire |
 
-### Comment changer une image
+### Hero : Image ou Vidéo
 
-1. **Préparez votre nouvelle image** avec les bonnes dimensions
-2. **Optimisez-la** sur [tinypng.com](https://tinypng.com) (gratuit)
-3. **Placez-la** dans le dossier `images/`
-4. **Modifiez le chemin** dans `config.js`
+Dans `config.js`, section `medias.hero` :
 
-**Exemple dans config.js :**
 ```javascript
-images: {
-    logo: "./images/mon-nouveau-logo.jpg",
-    heroBackground: "./images/ma-nouvelle-image-hero.jpg",
-    // ...
+medias: {
+    hero: {
+        type: "image",              // ou "video"
+        src: "./images/hero-bg.jpg", // ou hero-bg.mp4
+        poster: "./images/hero-bg.jpg" // Image de fallback pour vidéo
+    }
 }
 ```
+
+### Galerie : Images et/ou Vidéos
+
+La galerie supporte jusqu'à 6 médias (images ou vidéos) :
+- Nommez les fichiers : `galerie1.jpg`, `galerie2.mp4`, etc.
+- Les vidéos se lancent au survol (muet, en boucle)
+- Formats supportés : `.mp4`, `.webm`, `.jpg`, `.jpeg`, `.png`, `.webp`
 
 ---
 
-## 📝 Modifier les textes
+## Modifier les textes
 
-### Informations générales (ligne ~20 de config.js)
+### Informations générales
 
 ```javascript
 site: {
-    nom: "La Cave Annecy",          // Nom du bar
-    slogan: "Bar à vins depuis 1987", // Slogan affiché
-    annee: "2025"                    // Année copyright
+    nom: "La Cave Annecy",
+    slogan: "Bar à vins depuis 1987",
+    annee: "2025"
 }
 ```
 
-### Coordonnées (ligne ~30 de config.js)
+### Coordonnées
 
 ```javascript
 contact: {
@@ -138,7 +160,7 @@ contact: {
         ville: "Annecy"
     },
     telephone: "04 50 09 45 93",
-    telephoneLien: "tel:0450094593",  // Sans espaces !
+    telephoneLien: "tel:0450094593",
     instagram: {
         pseudo: "@lacave_annecy",
         url: "https://instagram.com/lacave_annecy"
@@ -146,7 +168,7 @@ contact: {
 }
 ```
 
-### Horaires (ligne ~45 de config.js)
+### Horaires
 
 ```javascript
 horaires: {
@@ -158,72 +180,55 @@ horaires: {
 
 ---
 
-## 📅 Modifier les textes de l'Agenda
+## Carte des Vins via Google Sheets
 
-Dans `config.js`, section `accueil.agenda` :
+Voir le guide détaillé : **GUIDE-CARTE-GOOGLE-SHEETS.md**
+
+### Colonnes requises
+
+| Colonne | Description | Obligatoire |
+|---------|-------------|-------------|
+| `categorie` | Région (ex: "Savoie") | Oui |
+| `sous_categorie` | Type (ex: "Blancs") | Non |
+| `nom` | Nom du vin | Oui |
+| `domaine` | Producteur | Oui |
+| `prix_bouteille` | Prix (nombre) | Oui |
+| `disponible` | TRUE ou FALSE | Oui |
+
+**Important :** Seuls les vins avec `disponible = TRUE` sont affichés.
+
+---
+
+## Personnaliser les emojis
+
+Voir le guide détaillé : **GUIDE-EMOJIS.md**
+
+Dans `config.js`, section `emojis` :
 
 ```javascript
-agenda: {
-    badge: "À venir",
-    titre: "Agenda",
-    description: "Découvrez nos prochains événements...",
-    messageVide: "Aucun événement prévu pour le moment.",
-    messageErreur: "Impossible de charger les événements.",
-    messageChargement: "Chargement des événements..."
+emojis: {
+    carte: {
+        'les bulles': '✨',
+        'savoie': '⛰️',
+        'bourgogne': '🍇',
+        'default': '🍷'
+    },
+    menu: {
+        'finger food': '🥢',
+        'desserts': '🍰',
+        'default': '🍽️'
+    }
 }
 ```
 
 ---
 
-## 🍾 Modifier la carte des vins
-
-La carte se trouve dans `config.js`, section `carte.regions` (à partir de la ligne ~155).
-
-### Structure
-
-```javascript
-carte: {
-    regions: [
-        {
-            id: "bulles",                           // ID unique (sans espaces)
-            nom: "Les Bulles",                      // Nom affiché
-            emoji: "✨",                            // Emoji de l'onglet
-            sousTitre: "Champagnes, Crémants...",  // Description
-            categories: [
-                {
-                    nom: "Champagne",               // Nom de la catégorie
-                    vins: [
-                        { 
-                            nom: "Grande Réserve, Brut NM", 
-                            domaine: "Domaine Dehours", 
-                            prix: "72 €" 
-                        },
-                        // Autres vins...
-                    ]
-                },
-                // Autres catégories...
-            ]
-        },
-        // Autres régions...
-    ]
-}
-```
-
-### Ajouter un vin
-
-Ajoutez cette ligne dans la catégorie souhaitée :
-```javascript
-{ nom: "Nom du vin", domaine: "Nom du domaine", prix: "XX €" },
-```
-
----
-
-## 🗺️ Changer la carte Google Maps
+## Changer la carte Google Maps
 
 1. Allez sur [Google Maps](https://maps.google.com)
 2. Recherchez votre adresse
 3. Cliquez sur **Partager** → **Intégrer une carte**
-4. Copiez le lien `src="..."` 
+4. Copiez le lien `src="..."`
 5. Collez-le dans `config.js` :
 
 ```javascript
@@ -234,7 +239,7 @@ contact: {
 
 ---
 
-## 🎨 Modifier les couleurs
+## Modifier les couleurs
 
 Les couleurs sont dans `styles.css` (lignes 10-25) :
 
@@ -249,27 +254,28 @@ Les couleurs sont dans `styles.css` (lignes 10-25) :
 
 ---
 
-## 🚀 Mise en ligne
+## Mise en ligne
 
-### Sur GitHub Pages
+### Sur GitHub Pages / Netlify / Vercel
 
-1. Créez un repo GitHub
-2. Uploadez tous les fichiers
-3. Allez dans Settings → Pages
-4. Source : `main` branch, dossier `/`
-5. Votre site sera sur `username.github.io/nom-repo/`
+1. Uploadez tous les fichiers
+2. Le site est automatiquement déployé
+
+### Sur IONOS
+
+Voir le guide détaillé : **DEPLOIEMENT-IONOS.md**
 
 ### Vérifications avant mise en ligne
 
 - [ ] Toutes les images sont dans le dossier `images/`
 - [ ] Les chemins dans `config.js` commencent par `./images/`
-- [ ] Pas de caractères spéciaux dans les noms de fichiers
-- [ ] Images optimisées (< 500 Ko chacune idéalement)
-- [ ] Google Sheets publié et partagé en lecture
+- [ ] Google Sheets est publié et partagé en lecture
+- [ ] Le lien Google Avis fonctionne
+- [ ] Test sur mobile effectué
 
 ---
 
-## ❓ Problèmes courants
+## Problèmes courants
 
 ### Les images ne s'affichent pas
 
@@ -277,17 +283,25 @@ Les couleurs sont dans `styles.css` (lignes 10-25) :
 2. Vérifiez l'orthographe exacte (majuscules/minuscules)
 3. Vérifiez que le chemin commence par `./images/`
 
-### L'agenda ne charge pas les événements
+### L'agenda / la carte / le menu ne charge pas
 
 1. Vérifiez que le Google Sheets est **publié sur le web**
 2. Vérifiez que le fichier est **partagé en lecture**
-3. Vérifiez que l'ID dans `config.js` est correct
-4. Vérifiez que l'onglet s'appelle bien "agenda"
-5. Vérifiez que les dates sont au bon format
+3. Vérifiez l'ID dans `config.js`
+4. Testez avec `?refresh=1`
+
+### Les étoiles Google ne s'affichent pas
+
+Le site utilise les données du Google Sheets "Notes Google". Si elles ne sont pas disponibles, il utilise les valeurs de `config.js > googleAvis`.
+
+### Le compte de vins est incorrect
+
+Vérifiez dans le Google Sheets que tous les vins ont `TRUE` (et non vide ou "Oui") dans la colonne `disponible`.
 
 ### Le site ne se met pas à jour
 
-Faites un **rafraîchissement forcé** : `Ctrl + Shift + R` (ou `Cmd + Shift + R` sur Mac)
+1. Ajoutez `?refresh=1` à l'URL
+2. Ou faites `Ctrl + Shift + R` (rafraîchissement forcé)
 
 ### Erreur de syntaxe JavaScript
 
@@ -298,9 +312,18 @@ Vérifiez que :
 
 ---
 
-## 📞 Support
+## Débogage avancé
 
-Pour toute question technique, consultez un développeur web ou référez-vous à la documentation originale.
+Ouvrez la console du navigateur (F12) pour voir :
+- Les erreurs de chargement
+- Le nombre de vins chargés : `[SheetsLoader] Carte des vins: 502 vins disponibles sur 1305 total`
+- L'état du cache
+
+---
+
+## Support
+
+Pour toute question technique, consultez un développeur web ou référez-vous à la documentation.
 
 ---
 
