@@ -2304,27 +2304,24 @@ a {
 .hero__google-rating-stars {
     display: flex;
     gap: 2px;
+    color: var(--color-secondary);
 }
 
 .hero__google-rating-stars svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
 }
 
 .hero__google-rating-stars svg.star-filled {
-    fill: var(--color-secondary);
-    stroke: var(--color-secondary);
+    color: var(--color-secondary);
 }
 
 .hero__google-rating-stars svg.star-partial {
     color: var(--color-secondary);
-    stroke: var(--color-secondary);
-    stroke-width: 1;
 }
 
 .hero__google-rating-stars svg.star-empty {
-    fill: none;
-    stroke: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .hero__google-rating-separator {

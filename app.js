@@ -338,28 +338,28 @@ function generateStars(rating, cssClass = '', allowPartial = true) {
 
     let html = '';
 
-    // Étoiles pleines
+    // Étoiles pleines (fill explicite pour compatibilité)
     for (let i = 0; i < fullStars; i++) {
-        html += `<svg class="${safeCssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+        html += `<svg class="${safeCssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
     }
 
-    // Étoile partielle (avec gradient)
+    // Étoile partielle (avec gradient SVG)
     if (hasPartial) {
         const percentage = Math.round(partialFill * 100);
         html += `<svg class="${safeCssClass} star-partial" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
             <defs>
-                <linearGradient id="${gradientId}">
+                <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="0%">
                     <stop offset="${percentage}%" stop-color="currentColor"/>
                     <stop offset="${percentage}%" stop-color="transparent"/>
                 </linearGradient>
             </defs>
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#${gradientId})" stroke="currentColor" stroke-width="1"/>
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#${gradientId})" stroke="currentColor" stroke-width="1.5"/>
         </svg>`;
     }
 
-    // Étoiles vides
+    // Étoiles vides (stroke uniquement)
     for (let i = 0; i < emptyStars; i++) {
-        html += `<svg class="${safeCssClass} star-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+        html += `<svg class="${safeCssClass} star-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
     }
 
     return html;
@@ -513,8 +513,8 @@ function applyConfig() {
         setElement('hero-titre-1', 'textContent', hero.titreLigne1);
         setElement('hero-titre-2', 'textContent', hero.titreLigne2);
         setElement('hero-sous-titre', 'textContent', hero.sousTitre);
-        // Sécurité: utiliser textContent au lieu de innerHTML
-        setElement('hero-description', 'textContent', hero.description);
+        // Description: autoriser <strong>, <em>, <br> uniquement
+        setElement('hero-description', 'innerHTML', sanitizeHtmlLimited(hero.description));
         setElement('hero-btn-carte', 'textContent', hero.boutonCarte);
         setElement('hero-btn-contact', 'textContent', hero.boutonContact);
     }
@@ -1217,6 +1217,59 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+/**
+ * Nettoie le HTML en n'autorisant que certaines balises sûres
+ * Balises autorisées: <strong>, <em>, <b>, <i>, <br>
+ * @param {string} html - HTML à nettoyer
+ * @returns {string} - HTML nettoyé avec uniquement les balises autorisées
+ */
+function sanitizeHtmlLimited(html) {
+    if (html === null || html === undefined) return '';
+    const str = String(html);
+
+    // Liste des balises autorisées (sans attributs)
+    const allowedTags = ['strong', 'em', 'b', 'i', 'br'];
+
+    // Créer un élément temporaire pour parser le HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = str;
+
+    // Fonction récursive pour nettoyer les noeuds
+    function cleanNode(node) {
+        const children = Array.from(node.childNodes);
+
+        children.forEach(child => {
+            if (child.nodeType === Node.TEXT_NODE) {
+                // Les noeuds texte sont sûrs
+                return;
+            }
+
+            if (child.nodeType === Node.ELEMENT_NODE) {
+                const tagName = child.tagName.toLowerCase();
+
+                if (allowedTags.includes(tagName)) {
+                    // Balise autorisée: supprimer tous les attributs
+                    while (child.attributes.length > 0) {
+                        child.removeAttribute(child.attributes[0].name);
+                    }
+                    // Nettoyer récursivement les enfants
+                    cleanNode(child);
+                } else {
+                    // Balise non autorisée: remplacer par son contenu texte
+                    const text = document.createTextNode(child.textContent);
+                    node.replaceChild(text, child);
+                }
+            } else {
+                // Autres types de noeuds: supprimer
+                node.removeChild(child);
+            }
+        });
+    }
+
+    cleanNode(temp);
+    return temp.innerHTML;
 }
 
 /**
