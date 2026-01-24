@@ -248,14 +248,18 @@ function applyGoogleReviewsData(data) {
     }
 
     const heroStars = document.getElementById('hero-rating-stars');
-    if (heroStars && data.noteGlobale) {
+    // Utiliser data.noteGlobale, sinon fallback sur config.js
+    const noteToDisplay = data.noteGlobale || avis.noteGlobale || 0;
+    if (heroStars && noteToDisplay) {
         // Générer les étoiles avec support des étoiles partielles
-        heroStars.innerHTML = generateStars(data.noteGlobale, '', true);
+        heroStars.innerHTML = generateStars(noteToDisplay, '', true);
     }
 
     const heroCount = document.getElementById('hero-rating-count');
-    if (heroCount && data.nombreAvis) {
-        heroCount.textContent = `${data.nombreAvis} avis Google`;
+    // Utiliser data.nombreAvis, sinon fallback sur config.js
+    const nombreAvisToDisplay = data.nombreAvis || avis.nombreAvis || 0;
+    if (heroCount && nombreAvisToDisplay) {
+        heroCount.textContent = `${nombreAvisToDisplay} avis Google`;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
