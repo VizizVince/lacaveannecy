@@ -456,12 +456,99 @@ a {
     object-fit: cover;
 }
 
-/* Overlay sombre par-dessus l'image/vidéo */
+/* ========================================
+   HERO - VIDÉO PORTRAIT
+   Gestion des vidéos filmées en portrait
+   - Desktop: zoom pour remplir horizontalement
+   - Mobile: reste en portrait, coupe si nécessaire
+======================================== */
+
+/* Mode portrait activé sur le conteneur */
+.hero__media--portrait {
+    overflow: hidden;
+}
+
+/* Vidéo portrait: zoom pour TOUJOURS remplir la largeur */
+.hero__video--portrait {
+    position: absolute;
+    /* Utiliser width: 100% + scale pour garantir la couverture */
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    /* Centrage vertical */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+}
+
+/* Sur desktop: forcer le zoom pour remplir horizontalement */
+@media (min-width: 769px) {
+    .hero__video--portrait {
+        /* Calculer la largeur nécessaire pour couvrir un écran 16:9 avec une vidéo 9:16 */
+        /* Ratio = (16/9) / (9/16) = 256/81 ≈ 3.16 */
+        /* On utilise une approche plus simple: forcer width basé sur la hauteur */
+        width: auto;
+        height: 100vh;
+        min-width: 100vw;
+        /* Scale pour s'assurer que ça dépasse toujours */
+        transform: translate(-50%, -50%) scale(1.8);
+    }
+}
+
+/* Sur très grand écran, augmenter encore le scale */
+@media (min-width: 1400px) {
+    .hero__video--portrait {
+        transform: translate(-50%, -50%) scale(2);
+    }
+}
+
+/* Sur tablette paysage */
+@media (min-width: 769px) and (max-width: 1023px) {
+    .hero__video--portrait {
+        transform: translate(-50%, -50%) scale(1.6);
+    }
+}
+
+/* Sur MOBILE: la vidéo portrait s'adapte mieux au format vertical */
+@media (max-width: 768px) {
+    .hero__video--portrait {
+        width: 100%;
+        height: auto;
+        min-height: 100svh;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
+    }
+}
+
+/* Sur très petit mobile (format très vertical) - la vidéo portrait est naturelle */
+@media (max-width: 480px) {
+    .hero__video--portrait {
+        width: auto;
+        height: 100svh;
+        min-width: 100vw;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
+    }
+}
+
+/* ========================================
+   HERO - OVERLAY VIDÉO
+   Opacité plus forte pour les vidéos (+20%)
+======================================== */
+
+/* Overlay par défaut pour images: 55% */
 .hero__overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
     pointer-events: none;
+}
+
+/* Overlay pour vidéos: 75% (55% + 20%) */
+.hero__media--video + .hero__overlay,
+.hero__media--video ~ .hero__overlay {
+    background: rgba(0, 0, 0, 0.75);
 }
 
 .hero__content {

@@ -44,8 +44,11 @@ const CONFIG = {
     site: { nom, slogan, description, annee },
     contact: { adresse, telephone, instagram, googleMapsEmbed },
     horaires: { jours, heures, fermeture },
-    medias: { hero: { type, src, poster } },  // Image or video hero
-    images: { logo, galerie },                 // Gallery supports images + videos
+    medias: {
+        hero: { dossier, prefixe, extensionsVideo, extensionsImage, fallback },  // Auto-detect video/image
+        galerie: { dossier, prefixe, extensionsVideo, extensionsImage, maxItems }
+    },
+    images: { logo, galerie },                 // Rétrocompatibilité
     accueil: { hero, galerie, agenda, contact },
     agenda: { googleSheetsId, sheetName, maxEvents },
     carte: { googleSheets, page, footer },
@@ -146,17 +149,32 @@ To force refresh: add `?refresh=1` to URL.
 
 ### Add/Change Images & Videos
 
-**Hero Background (Image or Video):**
-Configure in `config.js` under `medias.hero`:
+**Hero Background (Auto-detection vidéo/image):**
+Le système détecte automatiquement les médias disponibles dans `/images/`:
+1. **Priorité vidéo** : Si `hero-bg.mp4` (ou `.webm`) existe → vidéo affichée
+2. **Fallback image** : Si vidéo échoue → `hero-bg.jpg` utilisée automatiquement
+3. **Fallback ultime** : Si rien ne fonctionne → image définie dans `config.js`
+
+**Support des vidéos portrait:**
+- Desktop : zoom automatique pour remplir l'écran (coupe les bords haut/bas)
+- Mobile : adapté au format vertical (object-fit: cover)
+
+Configuration dans `config.js` sous `medias.hero`:
 ```javascript
 medias: {
     hero: {
-        type: "image",  // or "video"
-        src: "./images/hero-bg.jpg",  // or hero-bg.mp4
-        poster: "./images/hero-bg.jpg"  // fallback for video
+        dossier: "./images/",
+        prefixe: "hero-bg",
+        extensionsVideo: [".mp4", ".webm"],
+        extensionsImage: [".jpg", ".jpeg", ".png", ".webp"],
+        fallback: "./images/hero-bg.jpg"
     }
 }
 ```
+
+**Pour changer le hero:**
+- Placer `hero-bg.mp4` et/ou `hero-bg.jpg` dans `/images/`
+- La vidéo sera toujours prioritaire si elle existe
 
 **Gallery (Images and/or Videos):**
 1. Name files: `galerie1.jpg`, `galerie2.mp4`, etc. (up to 6)
@@ -211,6 +229,8 @@ Check browser console (F12) for:
 - Data loading logs with row counts
 - `[SheetsLoader] hasAllLabels: true, firstRowIsHeader: false, startIndex: 0, totalRows: 1305`
 - `[SheetsLoader] Carte des vins: 502 vins disponibles sur 1305 total`
+- `[Hero] Vidéo trouvée: ./images/hero-bg.mp4 Dimensions: 1080 x 1920`
+- `[Hero] Vidéo portrait détectée, mode adaptatif activé`
 
 ## Important Notes
 
@@ -225,12 +245,22 @@ Check browser console (F12) for:
 
 Suitable for any static hosting: GitHub Pages, Netlify, Vercel, IONOS, etc.
 
+### IONOS Compatibility
+
+Le site est 100% compatible IONOS (hébergement statique):
+- Pas de Node.js, PHP ou backend requis
+- Tous les fichiers sont statiques (HTML, CSS, JS vanilla)
+- Vidéos MP4/WebM servies avec les MIME types standards
+- Détection automatique des médias côté client (JavaScript)
+- Cache localStorage (pas de dépendance serveur)
+
 Pre-deployment checklist:
 1. All image paths are relative (`./images/...`)
 2. Google Sheets are published and accessible
 3. Test with `?refresh=1` to verify fresh data loads
 4. Test on mobile devices
 5. Verify Google Reviews link works
+6. Vérifier que les vidéos sont bien uploadées (hero-bg.mp4)
 
 ## Troubleshooting
 
@@ -244,6 +274,14 @@ Check that all wines have `TRUE` in the `disponible` column (not empty, not "Oui
 2. Verify note globale is a number between 0-5 in column A
 3. Verify nombre d'avis is a number > 10 in column A
 4. Check console for parsing errors
+
+### Vidéo hero ne s'affiche pas
+
+1. Vérifier que `hero-bg.mp4` existe dans `/images/`
+2. Vérifier la console (F12) pour les logs `[Hero]`
+3. Si timeout vidéo, vérifier la taille du fichier (< 15 Mo recommandé)
+4. Vérifier le format (MP4 H.264 recommandé pour compatibilité maximale)
+5. Si vidéo portrait mal cadrée, vérifier les dimensions dans la console
 
 ### Stars not displaying
 
