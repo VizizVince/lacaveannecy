@@ -513,10 +513,14 @@ a {
 /* Sur MOBILE: la vidéo portrait s'adapte mieux au format vertical */
 @media (max-width: 768px) {
     .hero__video--portrait {
-        width: 100%;
-        height: auto;
+        width: auto;
+        height: 100%;
         min-height: 100svh;
-        transform: translate(-50%, -50%);
+        min-width: 100vw;
+        /* Aligner en haut pour couvrir depuis le header */
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
         object-fit: cover;
     }
 }
@@ -525,9 +529,13 @@ a {
 @media (max-width: 480px) {
     .hero__video--portrait {
         width: auto;
-        height: 100svh;
+        height: 100%;
+        min-height: 100svh;
         min-width: 100vw;
-        transform: translate(-50%, -50%);
+        /* Aligner en haut */
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
         object-fit: cover;
     }
 }
