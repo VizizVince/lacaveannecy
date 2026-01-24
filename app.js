@@ -77,8 +77,6 @@ async function loadGoogleReviewsFromSheets() {
         // Appliquer les données au DOM
         applyGoogleReviewsData(reviewsData);
 
-        console.log('[Avis Google] Données chargées depuis Sheets:', reviewsData);
-
     } catch (error) {
         console.warn('[Avis Google] Erreur chargement Sheets, fallback sur config.js:', error.message);
         // Fallback sur les données statiques de config.js
@@ -102,8 +100,6 @@ function parseGoogleReviewsData(rows) {
         nombreAvis: 0,
         topAvis: []
     };
-
-    console.log('[Avis Google] Nombre de lignes reçues:', rows.length);
 
     // Fonction utilitaire pour obtenir la valeur d'une cellule
     function getCellValue(row, colIndex) {
@@ -197,7 +193,6 @@ function parseGoogleReviewsData(rows) {
     if (rows[1]) {
         const noteVal = getCellValue(rows[1], 0);
         result.noteGlobale = parseNumber(noteVal);
-        console.log('[Avis Google] Note globale (A2):', noteVal, '→', result.noteGlobale);
     }
 
     // Nombre d'avis - chercher dans toutes les lignes pour trouver un nombre > 10
@@ -209,7 +204,6 @@ function parseGoogleReviewsData(rows) {
         // Si c'est un nombre > 10 (pas une note sur 5), c'est probablement le nombre d'avis
         if (numValue > 10) {
             result.nombreAvis = Math.round(numValue);
-            console.log('[Avis Google] Nombre d\'avis trouvé à la ligne', i + 1, ':', cellValue, '→', result.nombreAvis);
             break;
         }
     }
@@ -219,21 +213,13 @@ function parseGoogleReviewsData(rows) {
     for (let i = 1; i < rows.length; i++) {
         if (!rows[i] || !rows[i].c) continue;
 
-        // Debug: afficher la structure brute des cellules pour cette ligne
-        console.log(`[Avis Google] Ligne ${i + 1} - cellules brutes:`, JSON.stringify(rows[i].c));
-
         const nom = getCellValue(rows[i], 2); // Colonne C (index 2)
         const note = parseNumber(getCellValue(rows[i], 3)); // Colonne D (index 3)
         const commentaire = getCellValue(rows[i], 4); // Colonne E (index 4)
         const dateValue = getCellValue(rows[i], 5); // Colonne F (index 5)
 
-        console.log(`[Avis Google] Ligne ${i + 1}: nom="${nom}", note=${note}, commentaire="${commentaire ? String(commentaire).substring(0, 30) + '...' : 'null'}", date=${dateValue}`);
-
         // Ne pas ajouter si pas de nom ou pas de commentaire
-        if (!nom || !commentaire) {
-            console.log(`[Avis Google] Ligne ${i + 1} ignorée (nom ou commentaire manquant)`);
-            continue;
-        }
+        if (!nom || !commentaire) continue;
 
         result.topAvis.push({
             auteur: String(nom).trim(),
@@ -243,7 +229,6 @@ function parseGoogleReviewsData(rows) {
         });
     }
 
-    console.log('[Avis Google] Résultat final:', result);
     return result;
 }
 
@@ -337,23 +322,30 @@ function applyGoogleReviewsData(data) {
 /**
  * Génère les étoiles HTML pour une note donnée (sur 5)
  * Arrondit à l'entier le plus proche (pas de demi-étoiles)
+ * @param {number} rating - Note de 0 à 5
+ * @param {string} cssClass - Classe CSS additionnelle (optionnel)
+ * @returns {string} - HTML des étoiles
  */
 function generateStars(rating, cssClass = '') {
+    // Valider et contraindre la note entre 0 et 5
+    const validRating = sanitizeNumber(rating, 0, 5, 0);
     // Arrondir à l'entier le plus proche (4.3 → 4, 4.7 → 5)
-    const roundedRating = Math.round(rating);
-    const fullStars = Math.min(roundedRating, 5); // Max 5 étoiles
+    const roundedRating = Math.round(validRating);
+    const fullStars = Math.min(Math.max(roundedRating, 0), 5); // 0-5 étoiles
     const emptyStars = 5 - fullStars;
+    // Échapper la classe CSS pour éviter les injections
+    const safeCssClass = cssClass ? escapeHtml(cssClass) : '';
 
     let html = '';
 
     // Étoiles pleines
     for (let i = 0; i < fullStars; i++) {
-        html += `<svg class="${cssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+        html += `<svg class="${safeCssClass} star-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
     }
 
     // Étoiles vides
     for (let i = 0; i < emptyStars; i++) {
-        html += `<svg class="${cssClass} star-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+        html += `<svg class="${safeCssClass} star-empty" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
     }
 
     return html;
@@ -440,8 +432,11 @@ function initHeroMedia() {
         video.onerror = function() {
             console.warn('Erreur de chargement de la vidéo hero, fallback sur image');
             if (mediaConfig.poster) {
-                heroMedia.style.backgroundImage = `url('${mediaConfig.poster}')`;
-                heroMedia.classList.add('hero__media--image');
+                const safePosterUrl = sanitizeUrl(mediaConfig.poster);
+                if (safePosterUrl) {
+                    heroMedia.style.backgroundImage = `url('${safePosterUrl}')`;
+                    heroMedia.classList.add('hero__media--image');
+                }
             }
         };
 
@@ -455,8 +450,11 @@ function initHeroMedia() {
 
     } else {
         // Image de fond
-        heroMedia.style.backgroundImage = `url('${mediaConfig.src}')`;
-        heroMedia.classList.add('hero__media--image');
+        const safeImageUrl = sanitizeUrl(mediaConfig.src);
+        if (safeImageUrl) {
+            heroMedia.style.backgroundImage = `url('${safeImageUrl}')`;
+            heroMedia.classList.add('hero__media--image');
+        }
     }
 }
 
@@ -501,7 +499,8 @@ function applyConfig() {
         setElement('hero-titre-1', 'textContent', hero.titreLigne1);
         setElement('hero-titre-2', 'textContent', hero.titreLigne2);
         setElement('hero-sous-titre', 'textContent', hero.sousTitre);
-        setElement('hero-description', 'innerHTML', hero.description);
+        // Sécurité: utiliser textContent au lieu de innerHTML
+        setElement('hero-description', 'textContent', hero.description);
         setElement('hero-btn-carte', 'textContent', hero.boutonCarte);
         setElement('hero-btn-contact', 'textContent', hero.boutonContact);
     }
@@ -551,9 +550,9 @@ function applyConfig() {
     if (CONFIG.contact) {
         const c = CONFIG.contact;
         
-        // Adresse
+        // Adresse (sécurisé avec escapeHtml)
         if (c.adresse) {
-            const adresseHtml = `${c.adresse.ligne1}<br>${c.adresse.ligne2}<br>${c.adresse.codePostal} ${c.adresse.ville}`;
+            const adresseHtml = `${escapeHtml(c.adresse.ligne1)}<br>${escapeHtml(c.adresse.ligne2)}<br>${escapeHtml(c.adresse.codePostal)} ${escapeHtml(c.adresse.ville)}`;
             setElement('contact-adresse', 'innerHTML', adresseHtml);
         }
         
@@ -576,9 +575,9 @@ function applyConfig() {
         // Google Maps
         setElement('contact-map', 'src', c.googleMapsEmbed);
         
-        // Horaires dans contact
+        // Horaires dans contact (sécurisé avec escapeHtml)
         if (CONFIG.horaires) {
-            const horairesHtml = `${CONFIG.horaires.jours}<br>${CONFIG.horaires.heures}`;
+            const horairesHtml = `${escapeHtml(CONFIG.horaires.jours)}<br>${escapeHtml(CONFIG.horaires.heures)}`;
             setElement('contact-horaires', 'innerHTML', horairesHtml);
         }
     }
@@ -781,9 +780,15 @@ function generateGallery() {
             if (mediaData.type === 'video') {
                 // Élément vidéo avec lecture au survol
                 item.classList.add('gallery-item--video');
+                // Sécurité: échapper toutes les données utilisateur
+                const safeSrc = sanitizeUrl(mediaData.src);
+                const safeTag = escapeHtml(mediaData.tag);
+                const safeTitle = escapeHtml(mediaData.titre);
+                const safeMimeType = mediaData.mimeType === 'video/webm' ? 'video/webm' : 'video/mp4';
+
                 item.innerHTML = `
                     <video class="gallery-item__video" muted loop playsinline preload="metadata">
-                        <source src="${mediaData.src}" type="${mediaData.mimeType}">
+                        <source src="${safeSrc}" type="${safeMimeType}">
                     </video>
                     <div class="gallery-item__play-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="white" stroke="none">
@@ -791,8 +796,8 @@ function generateGallery() {
                         </svg>
                     </div>
                     <div class="gallery-item__overlay">
-                        <span class="gallery-item__tag">${mediaData.tag}</span>
-                        <h3 class="gallery-item__title">${mediaData.titre}</h3>
+                        <span class="gallery-item__tag">${safeTag}</span>
+                        <h3 class="gallery-item__title">${safeTitle}</h3>
                     </div>
                 `;
 
@@ -824,11 +829,16 @@ function generateGallery() {
 
             } else {
                 // Élément image classique
+                // Sécurité: échapper toutes les données utilisateur
+                const safeSrc = sanitizeUrl(mediaData.src);
+                const safeTag = escapeHtml(mediaData.tag);
+                const safeTitle = escapeHtml(mediaData.titre);
+
                 item.innerHTML = `
-                    <img src="${mediaData.src}" alt="${mediaData.titre}" loading="lazy">
+                    <img src="${safeSrc}" alt="${safeTitle}" loading="lazy">
                     <div class="gallery-item__overlay">
-                        <span class="gallery-item__tag">${mediaData.tag}</span>
-                        <h3 class="gallery-item__title">${mediaData.titre}</h3>
+                        <span class="gallery-item__tag">${safeTag}</span>
+                        <h3 class="gallery-item__title">${safeTitle}</h3>
                     </div>
                 `;
             }
@@ -1184,12 +1194,66 @@ function renderAgendaError() {
 
 /**
  * Échappe les caractères HTML pour éviter les injections XSS
+ * @param {*} text - Texte à échapper (sera converti en string)
+ * @returns {string} - Texte échappé sécurisé
  */
 function escapeHtml(text) {
-    if (!text) return '';
+    if (text === null || text === undefined) return '';
+    const str = String(text);
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = str;
     return div.innerHTML;
+}
+
+/**
+ * Valide et nettoie une URL
+ * @param {string} url - URL à valider
+ * @returns {string} - URL sécurisée ou chaîne vide
+ */
+function sanitizeUrl(url) {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    // Accepter uniquement http, https, tel, mailto et chemins relatifs
+    if (trimmed.startsWith('http://') ||
+        trimmed.startsWith('https://') ||
+        trimmed.startsWith('tel:') ||
+        trimmed.startsWith('mailto:') ||
+        trimmed.startsWith('./') ||
+        trimmed.startsWith('/') ||
+        trimmed.startsWith('#')) {
+        return trimmed;
+    }
+    // Rejeter javascript:, data:, vbscript:, etc.
+    console.warn('[Sécurité] URL rejetée:', trimmed.substring(0, 50));
+    return '';
+}
+
+/**
+ * Valide un nombre et le contraint dans une plage
+ * @param {*} value - Valeur à valider
+ * @param {number} min - Minimum (défaut 0)
+ * @param {number} max - Maximum (défaut Infinity)
+ * @param {number} fallback - Valeur par défaut si invalide
+ * @returns {number} - Nombre validé
+ */
+function sanitizeNumber(value, min = 0, max = Infinity, fallback = 0) {
+    if (value === null || value === undefined) return fallback;
+    const num = typeof value === 'number' ? value : parseFloat(String(value).replace(',', '.'));
+    if (isNaN(num)) return fallback;
+    return Math.max(min, Math.min(max, num));
+}
+
+/**
+ * Valide qu'une chaîne contient uniquement des emojis ou caractères sûrs
+ * @param {string} emoji - Emoji à valider
+ * @param {string} fallback - Emoji par défaut
+ * @returns {string} - Emoji validé
+ */
+function sanitizeEmoji(emoji, fallback = '🍷') {
+    if (!emoji || typeof emoji !== 'string') return fallback;
+    // Limiter la longueur et supprimer les balises HTML potentielles
+    const cleaned = emoji.substring(0, 10).replace(/<[^>]*>/g, '');
+    return cleaned || fallback;
 }
 
 /**

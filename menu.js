@@ -284,9 +284,7 @@ async function fetchMenuFromSheets() {
         : 'Menu';
     
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-    
-    console.log('[Menu] Fetching from:', sheetName);
-    
+
     const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -307,10 +305,7 @@ async function fetchMenuFromSheets() {
     
     const cols = json.table.cols;
     const rows = json.table.rows;
-    
-    console.log('[Menu] Colonnes reçues:', cols.map(c => c.label));
-    console.log('[Menu] Nombre de lignes:', rows.length);
-    
+
     // ═══════════════════════════════════════════════════════════════════════
     // CORRECTION v2: Utiliser les labels de colonnes de Google Sheets
     // Ils sont déjà corrects ! On les normalise simplement.
@@ -322,9 +317,7 @@ async function fetchMenuFromSheets() {
         }
         return `col_${index}`;
     });
-    
-    console.log('[Menu] Headers normalisés:', headers);
-    
+
     // Vérifier qu'on a bien les colonnes essentielles
     if (!headers.includes('categorie') || !headers.includes('nom')) {
         console.error('[Menu] Colonnes manquantes! Headers trouvés:', headers);
@@ -357,26 +350,20 @@ async function fetchMenuFromSheets() {
         
         // Ignorer la ligne si c'est une répétition des en-têtes
         if (item.categorie === 'categorie' || item.nom === 'nom') {
-            console.log('[Menu] Ligne d\'en-tête ignorée');
             continue;
         }
-        
+
         if (hasData && item.nom && item.categorie) {
-            console.log('[Menu] Item ajouté:', item.nom, '-', item.categorie);
             items.push(item);
         }
     }
-    
-    console.log('[Menu] Total items valides:', items.length);
     
     // Filtrer les items non disponibles
     const filtered = items.filter(item => {
         const dispo = String(item.disponible || 'OUI').toUpperCase().trim();
         return dispo !== 'NON' && dispo !== 'N' && dispo !== 'FALSE' && dispo !== '0';
     });
-    
-    console.log('[Menu] Items après filtre disponibilité:', filtered.length);
-    
+
     return filtered;
 }
 
@@ -419,22 +406,16 @@ function showError(message) {
  * VERSION CORRIGÉE avec debug
  */
 function renderMenu() {
-    console.log('[Menu] renderMenu() appelée');
-    console.log('[Menu] menuData:', menuData);
-    console.log('[Menu] currentFilter:', currentFilter);
-    
     const container = document.getElementById('menu-container');
     if (!container) {
         console.error('[Menu] Container #menu-container non trouvé!');
         return;
     }
     
-    let filteredData = currentFilter === 'all' 
-        ? menuData 
+    let filteredData = currentFilter === 'all'
+        ? menuData
         : menuData.filter(item => item.categorie === currentFilter);
-    
-    console.log('[Menu] filteredData:', filteredData.length, 'items');
-    
+
     filteredData.sort((a, b) => {
         const orderA = parseInt(a.ordre) || 999;
         const orderB = parseInt(b.ordre) || 999;
@@ -450,9 +431,7 @@ function renderMenu() {
         }
         grouped[cat].push(item);
     });
-    
-    console.log('[Menu] Catégories groupées:', Object.keys(grouped));
-    
+
     // Ordre des catégories
     const categoryOrder = ['Finger Food', 'Assiettes du Marché', 'Desserts'];
     
@@ -463,19 +442,21 @@ function renderMenu() {
 
     // D'abord les catégories dans l'ordre défini
     categoryOrder.forEach(category => {
-        console.log('[Menu] Vérification catégorie:', category, '- trouvée:', !!grouped[category]);
-
         if (grouped[category] && grouped[category].length > 0) {
             const emoji = getMenuEmoji(category);
             const horaires = MENU_CONFIG.horaires[category] || '';
+            // Sécurité: échapper toutes les données
+            const safeCategory = escapeHtml(category);
+            const safeEmoji = sanitizeEmoji(emoji);
+            const safeHoraires = escapeHtml(horaires);
 
             html += `
-                <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${category}">
+                <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${safeCategory}">
                     <div class="menu-section__header menu-section__header--collapsible">
-                        <div class="menu-section__icon">${emoji}</div>
+                        <div class="menu-section__icon">${safeEmoji}</div>
                         <div class="menu-section__header-content">
-                            <h2 class="menu-section__title">${category}</h2>
-                            ${horaires ? `<p class="menu-section__subtitle">${horaires}</p>` : ''}
+                            <h2 class="menu-section__title">${safeCategory}</h2>
+                            ${safeHoraires ? `<p class="menu-section__subtitle">${safeHoraires}</p>` : ''}
                         </div>
                         <div class="menu-section__toggle">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -500,12 +481,16 @@ function renderMenu() {
     Object.keys(grouped).forEach(category => {
         if (!categoryOrder.includes(category) && grouped[category].length > 0) {
             const emoji = getMenuEmoji(category);
+            // Sécurité: échapper toutes les données
+            const safeCategory = escapeHtml(category);
+            const safeEmoji = sanitizeEmoji(emoji);
+
             html += `
-                <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${category}">
+                <section class="menu-section scroll-reveal animate-visible ${collapsibleClass}" data-category="${safeCategory}">
                     <div class="menu-section__header menu-section__header--collapsible">
-                        <div class="menu-section__icon">${emoji}</div>
+                        <div class="menu-section__icon">${safeEmoji}</div>
                         <div class="menu-section__header-content">
-                            <h2 class="menu-section__title">${escapeHtml(category)}</h2>
+                            <h2 class="menu-section__title">${safeCategory}</h2>
                         </div>
                         <div class="menu-section__toggle">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -525,11 +510,8 @@ function renderMenu() {
             `;
         }
     });
-    
-    console.log('[Menu] HTML généré, longueur:', html.length);
-    
+
     if (html === '') {
-        console.warn('[Menu] Aucun HTML généré!');
         html = `
             <div class="carte-error">
                 <div class="carte-error__icon">🍽️</div>
@@ -538,9 +520,8 @@ function renderMenu() {
             </div>
         `;
     }
-    
+
     container.innerHTML = html;
-    console.log('[Menu] HTML injecté dans le container');
 
     // Ajouter les événements de dépliage
     setupCollapsibleEvents();
@@ -567,28 +548,52 @@ function renderMenuItem(item) {
 }
 
 /**
- * Formate le prix
+ * Formate le prix de manière sécurisée
+ * @param {*} prix - Prix à formater
+ * @param {string} unite - Unité (€, €/Kg, etc.)
+ * @returns {string} - Prix formaté et échappé
  */
 function formatPrice(prix, unite) {
-    if (!prix) return '';
-    
-    const numPrix = parseFloat(String(prix).replace(',', '.'));
-    if (isNaN(numPrix)) return prix;
-    
+    if (!prix && prix !== 0) return '';
+
+    // Nettoyer et parser le prix
+    const cleanedPrix = String(prix).replace(',', '.').replace(/[^0-9.]/g, '');
+    const numPrix = parseFloat(cleanedPrix);
+
+    if (isNaN(numPrix) || numPrix < 0 || numPrix > 100000) {
+        return escapeHtml(String(prix)); // Fallback sécurisé
+    }
+
     const formatted = numPrix.toFixed(2).replace('.', ',');
-    const suffix = unite || '€';
-    
-    return `${formatted}${suffix === '€/Kg' ? ' €/Kg' : ' €'}`;
+    const safeUnite = unite === '€/Kg' ? ' €/Kg' : ' €';
+
+    return `${formatted}${safeUnite}`;
 }
 
 /**
- * Échappe les caractères HTML
+ * Échappe les caractères HTML pour éviter les injections XSS
+ * @param {*} text - Texte à échapper (sera converti en string)
+ * @returns {string} - Texte échappé sécurisé
  */
 function escapeHtml(text) {
-    if (!text) return '';
+    if (text === null || text === undefined) return '';
+    const str = String(text);
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = str;
     return div.innerHTML;
+}
+
+/**
+ * Valide qu'une chaîne contient uniquement des emojis ou caractères sûrs
+ * @param {string} emoji - Emoji à valider
+ * @param {string} fallback - Emoji par défaut
+ * @returns {string} - Emoji validé et échappé
+ */
+function sanitizeEmoji(emoji, fallback = '🍽️') {
+    if (!emoji || typeof emoji !== 'string') return fallback;
+    // Limiter la longueur et supprimer les balises HTML potentielles
+    const cleaned = emoji.substring(0, 10).replace(/<[^>]*>/g, '');
+    return escapeHtml(cleaned) || fallback;
 }
 
 /**

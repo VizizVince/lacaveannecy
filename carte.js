@@ -163,15 +163,19 @@ function generateFilters(categories) {
     // Onglets des catégories
     categories.forEach(cat => {
         const id = slugify(cat.nom);
-        const shortName = cat.nom
+        const shortName = (cat.nom || '')
             .replace('Vallée de la ', '')
             .replace('Vallée du ', '')
             .replace('Les ', '');
-        
+        // Sécurité: échapper toutes les données
+        const safeId = escapeHtml(id);
+        const safeEmoji = sanitizeEmoji(cat.emoji);
+        const safeName = escapeHtml(shortName);
+
         html += `
-            <button class="filter-tab" data-filter="${id}">
-                <span>${cat.emoji}</span>
-                <span>${shortName}</span>
+            <button class="filter-tab" data-filter="${safeId}">
+                <span>${safeEmoji}</span>
+                <span>${safeName}</span>
             </button>
         `;
     });
@@ -253,16 +257,19 @@ function renderMenu(categories) {
 
     categories.forEach((cat, index) => {
         const id = slugify(cat.nom);
-        // Par défaut, les sections sont dépliées
-        const isCollapsed = false;
+        // Sécurité: échapper toutes les données
+        const safeId = escapeHtml(id);
+        const safeEmoji = sanitizeEmoji(cat.emoji);
+        const safeName = escapeHtml(cat.nom);
+        const safeSubtitle = escapeHtml(generateSubtitle(cat));
 
         html += `
-            <section class="menu-section scroll-reveal menu-section--collapsible-mode" data-category="${id}" id="${id}">
-                <div class="menu-section__header menu-section__header--collapsible" data-section="${id}">
-                    <div class="menu-section__icon">${cat.emoji}</div>
+            <section class="menu-section scroll-reveal menu-section--collapsible-mode" data-category="${safeId}" id="${safeId}">
+                <div class="menu-section__header menu-section__header--collapsible" data-section="${safeId}">
+                    <div class="menu-section__icon">${safeEmoji}</div>
                     <div class="menu-section__header-content">
-                        <h2 class="menu-section__title">${escapeHtml(cat.nom)}</h2>
-                        <p class="menu-section__subtitle">${generateSubtitle(cat)}</p>
+                        <h2 class="menu-section__title">${safeName}</h2>
+                        <p class="menu-section__subtitle">${safeSubtitle}</p>
                     </div>
                     <div class="menu-section__toggle">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -339,37 +346,38 @@ function renderSousCategories(sousCategories) {
 
 /**
  * Génère le HTML des vins
+ * Sécurité: toutes les données sont échappées
  */
 function renderVins(vins) {
     return vins.map(vin => {
         // Construire le nom avec millésime si présent
         let nomComplet = escapeHtml(vin.nom);
         if (vin.millesime) {
-            nomComplet += ` <span class="menu-item__millesime">${vin.millesime}</span>`;
+            nomComplet += ` <span class="menu-item__millesime">${escapeHtml(vin.millesime)}</span>`;
         }
-        
+
         // Construire la ligne du domaine avec description si présente
         let domaineText = escapeHtml(vin.domaine);
         if (vin.description) {
             domaineText += ` — ${escapeHtml(vin.description)}`;
         }
-        
-        // Construire les prix
+
+        // Construire les prix (échappés pour la sécurité)
         let prixHtml = '';
         if (vin.prixVerre && vin.prixBouteille) {
             prixHtml = `
                 <div class="menu-item__prices">
-                    <span class="menu-item__price menu-item__price--verre" title="Prix au verre">${vin.prixVerre}</span>
+                    <span class="menu-item__price menu-item__price--verre" title="Prix au verre">${escapeHtml(vin.prixVerre)}</span>
                     <span class="menu-item__price-separator">/</span>
-                    <span class="menu-item__price menu-item__price--bouteille" title="Prix bouteille">${vin.prixBouteille}</span>
+                    <span class="menu-item__price menu-item__price--bouteille" title="Prix bouteille">${escapeHtml(vin.prixBouteille)}</span>
                 </div>
             `;
         } else if (vin.prixBouteille) {
-            prixHtml = `<span class="menu-item__price">${vin.prixBouteille}</span>`;
+            prixHtml = `<span class="menu-item__price">${escapeHtml(vin.prixBouteille)}</span>`;
         } else if (vin.prixVerre) {
-            prixHtml = `<span class="menu-item__price menu-item__price--verre">${vin.prixVerre}</span>`;
+            prixHtml = `<span class="menu-item__price menu-item__price--verre">${escapeHtml(vin.prixVerre)}</span>`;
         }
-        
+
         return `
             <div class="menu-item">
                 <div class="menu-item__info">
@@ -489,13 +497,29 @@ function slugify(text) {
 }
 
 /**
- * Échappe les caractères HTML
+ * Échappe les caractères HTML pour éviter les injections XSS
+ * @param {*} text - Texte à échapper (sera converti en string)
+ * @returns {string} - Texte échappé sécurisé
  */
 function escapeHtml(text) {
-    if (!text) return '';
+    if (text === null || text === undefined) return '';
+    const str = String(text);
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = str;
     return div.innerHTML;
+}
+
+/**
+ * Valide qu'une chaîne contient uniquement des emojis ou caractères sûrs
+ * @param {string} emoji - Emoji à valider
+ * @param {string} fallback - Emoji par défaut
+ * @returns {string} - Emoji validé et échappé
+ */
+function sanitizeEmoji(emoji, fallback = '🍷') {
+    if (!emoji || typeof emoji !== 'string') return fallback;
+    // Limiter la longueur et supprimer les balises HTML potentielles
+    const cleaned = emoji.substring(0, 10).replace(/<[^>]*>/g, '');
+    return escapeHtml(cleaned) || fallback;
 }
 
 /**
