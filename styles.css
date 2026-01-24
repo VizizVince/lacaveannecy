@@ -468,74 +468,87 @@ a {
     overflow: hidden;
 }
 
-/* Vidéo portrait sur DESKTOP: zoom horizontal pour remplir l'écran paysage */
+/* Vidéo portrait: zoom pour TOUJOURS remplir la largeur */
 .hero__video--portrait {
-    /* La vidéo portrait doit être agrandie pour couvrir la largeur */
-    /* Le ratio portrait (9:16) doit remplir un conteneur paysage (16:9) */
-    min-width: 100vw;
-    min-height: 100vh;
-    width: auto;
+    position: absolute;
+    /* Utiliser width: 100% + scale pour garantir la couverture */
+    width: 100%;
     height: auto;
-    /* Centrage */
+    min-height: 100%;
+    /* Centrage vertical */
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    /* object-fit: cover assure que la vidéo remplit l'espace */
     object-fit: cover;
 }
 
-/* Sur desktop large, forcer un zoom plus important pour les vidéos très portrait */
-@media (min-width: 1024px) {
+/* Sur desktop: forcer le zoom pour remplir horizontalement */
+@media (min-width: 769px) {
     .hero__video--portrait {
-        /* Sur grand écran, la vidéo portrait doit être encore plus zoomée */
-        /* pour éviter les bandes noires sur les côtés */
-        min-width: 177.78vh; /* 100vh * 16/9 pour garantir la couverture horizontale */
-        min-height: 100vh;
+        /* Calculer la largeur nécessaire pour couvrir un écran 16:9 avec une vidéo 9:16 */
+        /* Ratio = (16/9) / (9/16) = 256/81 ≈ 3.16 */
+        /* On utilise une approche plus simple: forcer width basé sur la hauteur */
+        width: auto;
+        height: 100vh;
+        min-width: 100vw;
+        /* Scale pour s'assurer que ça dépasse toujours */
+        transform: translate(-50%, -50%) scale(1.8);
+    }
+}
+
+/* Sur très grand écran, augmenter encore le scale */
+@media (min-width: 1400px) {
+    .hero__video--portrait {
+        transform: translate(-50%, -50%) scale(2);
     }
 }
 
 /* Sur tablette paysage */
 @media (min-width: 769px) and (max-width: 1023px) {
     .hero__video--portrait {
-        min-width: 150vh;
-        min-height: 100vh;
+        transform: translate(-50%, -50%) scale(1.6);
     }
 }
 
 /* Sur MOBILE: la vidéo portrait s'adapte mieux au format vertical */
 @media (max-width: 768px) {
     .hero__video--portrait {
-        /* Sur mobile, le conteneur est plus vertical */
-        /* La vidéo portrait peut utiliser plus d'espace naturellement */
-        min-width: 100vw;
-        min-height: 100svh; /* Utiliser svh pour iOS */
-        /* object-fit: cover coupe ce qui dépasse */
+        width: 100%;
+        height: auto;
+        min-height: 100svh;
+        transform: translate(-50%, -50%);
         object-fit: cover;
-    }
-
-    /* Sur mobile très étroit, laisser la vidéo portrait s'afficher plus naturellement */
-    .hero__media--portrait {
-        /* Le conteneur accepte mieux le format portrait */
     }
 }
 
-/* Sur très petit mobile (format très vertical) */
+/* Sur très petit mobile (format très vertical) - la vidéo portrait est naturelle */
 @media (max-width: 480px) {
     .hero__video--portrait {
-        /* La vidéo portrait est presque au bon ratio */
-        /* Juste s'assurer qu'elle couvre tout l'espace */
+        width: auto;
+        height: 100svh;
         min-width: 100vw;
-        min-height: 100svh;
+        transform: translate(-50%, -50%);
         object-fit: cover;
     }
 }
 
-/* Overlay sombre par-dessus l'image/vidéo */
+/* ========================================
+   HERO - OVERLAY VIDÉO
+   Opacité plus forte pour les vidéos (+20%)
+======================================== */
+
+/* Overlay par défaut pour images: 55% */
 .hero__overlay {
     position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
     pointer-events: none;
+}
+
+/* Overlay pour vidéos: 75% (55% + 20%) */
+.hero__media--video + .hero__overlay,
+.hero__media--video ~ .hero__overlay {
+    background: rgba(0, 0, 0, 0.75);
 }
 
 .hero__content {
