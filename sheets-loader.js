@@ -159,12 +159,20 @@ const SheetsLoader = (function() {
         });
         
         // Déterminer si la première ligne est un en-tête
-        const firstRowIsHeader = headers.every((h, i) => {
-            const firstVal = rows[0]?.c?.[i]?.v;
+        // Si tous les labels de colonnes sont définis, la première ligne est des données
+        const hasAllLabels = cols.every(col => col.label && col.label.trim());
+
+        // Sinon, vérifier si la première ligne ressemble à des en-têtes
+        const firstRowIsHeader = !hasAllLabels && headers.every((h, i) => {
+            const cell = rows[0]?.c?.[i];
+            if (!cell) return true; // Cellule vide = possible en-tête
+            const firstVal = cell.v;
+            // En-tête si c'est une chaîne non numérique
             return typeof firstVal === 'string' && isNaN(Number(firstVal));
         });
-        
+
         const startIndex = firstRowIsHeader ? 1 : 0;
+        console.log(`[SheetsLoader] hasAllLabels: ${hasAllLabels}, firstRowIsHeader: ${firstRowIsHeader}, startIndex: ${startIndex}, totalRows: ${rows.length}`);
         const result = [];
         
         for (let i = startIndex; i < rows.length; i++) {
@@ -242,20 +250,31 @@ const SheetsLoader = (function() {
         
         // Charger depuis Google Sheets
         const rawData = await fetchSheet(config.googleSheetsId, config.sheetName || 'Carte des Vins');
-        
+
+        console.log(`[SheetsLoader] Carte des vins: ${rawData.length} lignes chargées`);
+
+        // Fonction pour vérifier si un vin est disponible
+        function isDisponible(vin) {
+            const dispo = vin.disponible;
+            // Null ou undefined = non disponible
+            if (dispo === null || dispo === undefined) return false;
+            // Boolean direct
+            if (dispo === true) return true;
+            if (dispo === false) return false;
+            // Nombre
+            if (dispo === 1) return true;
+            if (dispo === 0) return false;
+            // Chaîne de caractères
+            if (typeof dispo === 'string') {
+                const lower = dispo.toLowerCase().trim();
+                return lower === 'true' || lower === 'oui' || lower === 'yes' || lower === '1' || lower === 'vrai';
+            }
+            return false;
+        }
+
         // Filtrer les vins disponibles et trier
         const vinsDisponibles = rawData
-            .filter(vin => {
-                const dispo = vin.disponible;
-                // Accepter TRUE, true, "TRUE", "true", "oui", "OUI", 1, "1"
-                return dispo === true || 
-                       dispo === 'TRUE' || 
-                       dispo === 'true' || 
-                       dispo === 'oui' || 
-                       dispo === 'OUI' ||
-                       dispo === 1 ||
-                       dispo === '1';
-            })
+            .filter(vin => isDisponible(vin))
             .sort((a, b) => {
                 // Trier par ordre, puis par catégorie, puis par sous-catégorie
                 const ordreA = parseInt(a.ordre) || 999;
@@ -270,7 +289,9 @@ const SheetsLoader = (function() {
                 const sousB = b.sous_categorie || '';
                 return sousA.localeCompare(sousB);
             });
-        
+
+        console.log(`[SheetsLoader] Carte des vins: ${vinsDisponibles.length} vins disponibles sur ${rawData.length} total`);
+
         // Grouper par catégorie et sous-catégorie
         const grouped = groupByCategory(vinsDisponibles);
         

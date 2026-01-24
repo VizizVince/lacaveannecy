@@ -186,31 +186,38 @@ function parseGoogleReviewsData(rows) {
 
     // ══════════════════════════════════════════════════════════════════════
     // EXTRACTION DES DONNÉES
-    // Structure: Row 0 = ligne 1, Row 1 = ligne 2, etc.
+    // Structure: Row 0 = ligne 1 du spreadsheet (les en-têtes sont dans cols.label)
     // ══════════════════════════════════════════════════════════════════════
 
-    // Note globale (A2 = row index 1, col index 0)
-    if (rows[1]) {
-        const noteVal = getCellValue(rows[1], 0);
-        result.noteGlobale = parseNumber(noteVal);
-    }
-
-    // Nombre d'avis - chercher dans toutes les lignes pour trouver un nombre > 10
-    // Car le nombre d'avis peut être en A5 (row index 4) ou ailleurs
+    // Note globale - chercher le premier nombre entre 0 et 5 (exclu) dans la colonne A
     for (let i = 0; i < rows.length; i++) {
         const cellValue = getCellValue(rows[i], 0);
         const numValue = parseNumber(cellValue);
 
-        // Si c'est un nombre > 10 (pas une note sur 5), c'est probablement le nombre d'avis
+        // Note globale : entre 0 et 5 (typiquement 4.8)
+        if (numValue > 0 && numValue <= 5) {
+            result.noteGlobale = numValue;
+            break;
+        }
+    }
+
+    // Nombre d'avis - chercher le premier nombre > 10 dans la colonne A
+    for (let i = 0; i < rows.length; i++) {
+        const cellValue = getCellValue(rows[i], 0);
+        const numValue = parseNumber(cellValue);
+
+        // Si c'est un nombre > 10 (pas une note sur 5), c'est le nombre d'avis
         if (numValue > 10) {
             result.nombreAvis = Math.round(numValue);
             break;
         }
     }
 
-    // Avis individuels - parcourir toutes les lignes sauf la première (en-têtes)
-    // et chercher les lignes avec un nom en colonne C
-    for (let i = 1; i < rows.length; i++) {
+    // Avis individuels - parcourir TOUTES les lignes (commencer à 0, pas 1)
+    // et chercher les lignes avec un nom en colonne C et un commentaire en E
+    const seenComments = new Set(); // Éviter les doublons
+
+    for (let i = 0; i < rows.length; i++) {
         if (!rows[i] || !rows[i].c) continue;
 
         const nom = getCellValue(rows[i], 2); // Colonne C (index 2)
@@ -220,6 +227,11 @@ function parseGoogleReviewsData(rows) {
 
         // Ne pas ajouter si pas de nom ou pas de commentaire
         if (!nom || !commentaire) continue;
+
+        // Éviter les doublons (même auteur + même commentaire)
+        const uniqueKey = `${String(nom).trim()}_${String(commentaire).trim().substring(0, 50)}`;
+        if (seenComments.has(uniqueKey)) continue;
+        seenComments.add(uniqueKey);
 
         result.topAvis.push({
             auteur: String(nom).trim(),
