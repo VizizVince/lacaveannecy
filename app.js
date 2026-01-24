@@ -403,35 +403,144 @@ function applyGoogleReviews() {
  * ═══════════════════════════════════════════════════════════════════════════
  * MÉDIAS - HERO (IMAGE OU VIDÉO)
  * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Détection automatique: vidéo prioritaire → image fallback
+ * Support des vidéos portrait avec zoom adaptatif (desktop/mobile)
  */
 
 /**
- * Initialise le média du hero (image ou vidéo)
+ * Initialise le média du hero avec détection automatique vidéo/image
+ * Priorité: vidéo (.mp4, .webm) → image (.jpg, .png, etc.) → fallback config
  */
 function initHeroMedia() {
     const heroMedia = document.getElementById('hero-media');
     if (!heroMedia) return;
 
-    // Configuration du média hero (nouvelle structure ou rétrocompatibilité)
-    let mediaConfig = null;
+    // Configuration du média hero
+    let heroConfig = null;
 
     if (CONFIG.medias?.hero) {
-        mediaConfig = CONFIG.medias.hero;
+        heroConfig = CONFIG.medias.hero;
     } else if (CONFIG.images?.heroBackground) {
         // Rétrocompatibilité avec ancienne structure
-        mediaConfig = {
-            type: 'image',
-            src: CONFIG.images.heroBackground
+        heroConfig = {
+            dossier: './images/',
+            prefixe: 'hero-bg',
+            extensionsVideo: ['.mp4', '.webm'],
+            extensionsImage: ['.jpg', '.jpeg', '.png', '.webp'],
+            fallback: CONFIG.images.heroBackground
         };
     }
 
-    if (!mediaConfig || !mediaConfig.src) {
-        console.warn('Aucun média hero configuré');
+    if (!heroConfig) {
+        console.warn('[Hero] Aucun média hero configuré');
         return;
     }
 
-    if (mediaConfig.type === 'video') {
-        // Créer un élément vidéo
+    // Paramètres de configuration
+    const dossier = heroConfig.dossier || './images/';
+    const prefixe = heroConfig.prefixe || 'hero-bg';
+    const extensionsVideo = heroConfig.extensionsVideo || ['.mp4', '.webm'];
+    const extensionsImage = heroConfig.extensionsImage || ['.jpg', '.jpeg', '.png', '.webp'];
+    const fallback = heroConfig.fallback || './images/hero-bg.jpg';
+
+    console.log('[Hero] Recherche de médias...');
+
+    /**
+     * Tente de charger une vidéo et renvoie une Promise
+     */
+    function tryLoadVideo(src) {
+        return new Promise((resolve) => {
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+
+            const timeout = setTimeout(() => {
+                video.src = '';
+                console.log('[Hero] Timeout vidéo:', src);
+                resolve(null);
+            }, 3000);
+
+            video.onloadedmetadata = function() {
+                clearTimeout(timeout);
+                console.log('[Hero] Vidéo trouvée:', src, 'Dimensions:', video.videoWidth, 'x', video.videoHeight);
+                resolve({
+                    src: src,
+                    width: video.videoWidth,
+                    height: video.videoHeight,
+                    isPortrait: video.videoHeight > video.videoWidth
+                });
+            };
+
+            video.onerror = function() {
+                clearTimeout(timeout);
+                resolve(null);
+            };
+
+            video.src = src;
+        });
+    }
+
+    /**
+     * Tente de charger une image et renvoie une Promise
+     */
+    function tryLoadImage(src) {
+        return new Promise((resolve) => {
+            const img = new Image();
+
+            img.onload = function() {
+                console.log('[Hero] Image trouvée:', src);
+                resolve(src);
+            };
+
+            img.onerror = function() {
+                resolve(null);
+            };
+
+            img.src = src;
+        });
+    }
+
+    /**
+     * Cherche les vidéos par extensions
+     */
+    async function findVideo() {
+        for (const ext of extensionsVideo) {
+            const src = `${dossier}${prefixe}${ext}`;
+            const result = await tryLoadVideo(src);
+            if (result) return result;
+        }
+        return null;
+    }
+
+    /**
+     * Cherche les images par extensions
+     */
+    async function findImage() {
+        for (const ext of extensionsImage) {
+            const src = `${dossier}${prefixe}${ext}`;
+            const result = await tryLoadImage(src);
+            if (result) return result;
+        }
+        return null;
+    }
+
+    /**
+     * Affiche l'image de fond
+     */
+    function displayImage(src) {
+        const safeUrl = sanitizeUrl(src);
+        if (safeUrl) {
+            heroMedia.style.backgroundImage = `url('${safeUrl}')`;
+            heroMedia.classList.remove('hero__media--video');
+            heroMedia.classList.add('hero__media--image');
+            console.log('[Hero] Image affichée:', src);
+        }
+    }
+
+    /**
+     * Affiche la vidéo avec gestion portrait et fallback
+     */
+    function displayVideo(videoInfo, imageFallback) {
         const video = document.createElement('video');
         video.className = 'hero__video';
         video.autoplay = true;
@@ -439,18 +548,21 @@ function initHeroMedia() {
         video.loop = true;
         video.playsInline = true;
         video.setAttribute('playsinline', ''); // Pour iOS
+        video.preload = 'auto';
 
-        // Poster image de secours
-        if (mediaConfig.poster) {
-            video.poster = mediaConfig.poster;
+        // Ajouter la classe portrait si vidéo en portrait
+        if (videoInfo.isPortrait) {
+            video.classList.add('hero__video--portrait');
+            heroMedia.classList.add('hero__media--portrait');
+            console.log('[Hero] Vidéo portrait détectée, mode adaptatif activé');
         }
 
         // Source vidéo
         const source = document.createElement('source');
-        source.src = mediaConfig.src;
+        source.src = sanitizeUrl(videoInfo.src);
 
         // Détecter le type MIME
-        if (mediaConfig.src.endsWith('.webm')) {
+        if (videoInfo.src.endsWith('.webm')) {
             source.type = 'video/webm';
         } else {
             source.type = 'video/mp4';
@@ -458,34 +570,59 @@ function initHeroMedia() {
 
         video.appendChild(source);
 
-        // Gestion des erreurs
+        // Gestion des erreurs - fallback sur image
         video.onerror = function() {
-            console.warn('Erreur de chargement de la vidéo hero, fallback sur image');
-            if (mediaConfig.poster) {
-                const safePosterUrl = sanitizeUrl(mediaConfig.poster);
-                if (safePosterUrl) {
-                    heroMedia.style.backgroundImage = `url('${safePosterUrl}')`;
-                    heroMedia.classList.add('hero__media--image');
-                }
-            }
+            console.warn('[Hero] Erreur vidéo, fallback sur image');
+            heroMedia.innerHTML = '';
+            heroMedia.classList.remove('hero__media--video', 'hero__media--portrait');
+
+            // Utiliser l'image trouvée ou le fallback
+            const fallbackSrc = imageFallback || fallback;
+            displayImage(fallbackSrc);
         };
 
+        // Vider et ajouter la vidéo
+        heroMedia.innerHTML = '';
         heroMedia.appendChild(video);
+        heroMedia.classList.remove('hero__media--image');
         heroMedia.classList.add('hero__media--video');
 
         // Démarrer la lecture
         video.play().catch(function(e) {
-            console.warn('Autoplay bloqué:', e);
+            console.warn('[Hero] Autoplay bloqué:', e.message);
+            // Afficher quand même la vidéo en pause (l'utilisateur pourra interagir)
         });
 
-    } else {
-        // Image de fond
-        const safeImageUrl = sanitizeUrl(mediaConfig.src);
-        if (safeImageUrl) {
-            heroMedia.style.backgroundImage = `url('${safeImageUrl}')`;
-            heroMedia.classList.add('hero__media--image');
+        console.log('[Hero] Vidéo affichée:', videoInfo.src);
+    }
+
+    /**
+     * Processus de détection automatique
+     */
+    async function detectAndDisplayMedia() {
+        // 1. Chercher une vidéo
+        const videoInfo = await findVideo();
+
+        // 2. Chercher une image (pour le fallback)
+        const imageSrc = await findImage();
+
+        // 3. Afficher le média approprié
+        if (videoInfo) {
+            // Vidéo trouvée → l'afficher avec image en fallback
+            displayVideo(videoInfo, imageSrc);
+        } else if (imageSrc) {
+            // Pas de vidéo → utiliser l'image
+            console.log('[Hero] Pas de vidéo, utilisation de l\'image');
+            displayImage(imageSrc);
+        } else {
+            // Aucun média trouvé → utiliser le fallback de config
+            console.log('[Hero] Aucun média trouvé, utilisation du fallback');
+            displayImage(fallback);
         }
     }
+
+    // Lancer la détection
+    detectAndDisplayMedia();
 }
 
 /**

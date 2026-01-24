@@ -58,11 +58,12 @@ const CONFIG = {
     // SECTION 4: MÉDIAS (IMAGES & VIDÉOS)
     // ═══════════════════════════════════════════════════════════════════════
     //
-    // HERO: Vous pouvez utiliser une image OU une vidéo comme fond
-    //   - Pour une image: type: "image", src: "./images/hero-bg.jpg"
-    //   - Pour une vidéo: type: "video", src: "./images/hero-bg.mp4"
+    // HERO: Détection automatique vidéo/image
+    //   - Si hero-bg.mp4 ET hero-bg.jpg existent → vidéo en priorité
+    //   - Si la vidéo échoue → fallback sur l'image automatiquement
     //   - Formats vidéo supportés: .mp4, .webm
     //   - La vidéo sera en boucle, muette et en autoplay
+    //   - Support des vidéos portrait (zoom auto sur desktop, portrait sur mobile)
     //
     // GALERIE: Chaque élément peut être une image OU une vidéo
     //   - Images: galerie1.jpg, galerie2.jpg, etc.
@@ -76,13 +77,17 @@ const CONFIG = {
     medias: {
         logo: "./images/logo.jpg",
 
-        // Configuration du fond Hero
-        // Options: type "image" ou "video"
+        // Configuration du fond Hero - Détection automatique
+        // Le système essaie d'abord la vidéo, puis l'image en fallback
         hero: {
-            type: "image",                    // "image" ou "video"
-            src: "./images/hero-bg.jpg",      // Chemin vers le fichier
-            // Pour une vidéo, utiliser: type: "video", src: "./images/hero-bg.mp4"
-            poster: "./images/hero-bg.jpg"    // Image de secours si vidéo (optionnel)
+            // Dossier et préfixe des fichiers hero (hero-bg.mp4, hero-bg.jpg, etc.)
+            dossier: "./images/",
+            prefixe: "hero-bg",
+            // Extensions à chercher (par ordre de priorité)
+            extensionsVideo: [".mp4", ".webm"],
+            extensionsImage: [".jpg", ".jpeg", ".png", ".webp"],
+            // Image de secours ultime si rien ne fonctionne
+            fallback: "./images/hero-bg.jpg"
         },
 
         // Configuration de la galerie

@@ -456,6 +456,80 @@ a {
     object-fit: cover;
 }
 
+/* ========================================
+   HERO - VIDÉO PORTRAIT
+   Gestion des vidéos filmées en portrait
+   - Desktop: zoom pour remplir horizontalement
+   - Mobile: reste en portrait, coupe si nécessaire
+======================================== */
+
+/* Mode portrait activé sur le conteneur */
+.hero__media--portrait {
+    overflow: hidden;
+}
+
+/* Vidéo portrait sur DESKTOP: zoom horizontal pour remplir l'écran paysage */
+.hero__video--portrait {
+    /* La vidéo portrait doit être agrandie pour couvrir la largeur */
+    /* Le ratio portrait (9:16) doit remplir un conteneur paysage (16:9) */
+    min-width: 100vw;
+    min-height: 100vh;
+    width: auto;
+    height: auto;
+    /* Centrage */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* object-fit: cover assure que la vidéo remplit l'espace */
+    object-fit: cover;
+}
+
+/* Sur desktop large, forcer un zoom plus important pour les vidéos très portrait */
+@media (min-width: 1024px) {
+    .hero__video--portrait {
+        /* Sur grand écran, la vidéo portrait doit être encore plus zoomée */
+        /* pour éviter les bandes noires sur les côtés */
+        min-width: 177.78vh; /* 100vh * 16/9 pour garantir la couverture horizontale */
+        min-height: 100vh;
+    }
+}
+
+/* Sur tablette paysage */
+@media (min-width: 769px) and (max-width: 1023px) {
+    .hero__video--portrait {
+        min-width: 150vh;
+        min-height: 100vh;
+    }
+}
+
+/* Sur MOBILE: la vidéo portrait s'adapte mieux au format vertical */
+@media (max-width: 768px) {
+    .hero__video--portrait {
+        /* Sur mobile, le conteneur est plus vertical */
+        /* La vidéo portrait peut utiliser plus d'espace naturellement */
+        min-width: 100vw;
+        min-height: 100svh; /* Utiliser svh pour iOS */
+        /* object-fit: cover coupe ce qui dépasse */
+        object-fit: cover;
+    }
+
+    /* Sur mobile très étroit, laisser la vidéo portrait s'afficher plus naturellement */
+    .hero__media--portrait {
+        /* Le conteneur accepte mieux le format portrait */
+    }
+}
+
+/* Sur très petit mobile (format très vertical) */
+@media (max-width: 480px) {
+    .hero__video--portrait {
+        /* La vidéo portrait est presque au bon ratio */
+        /* Juste s'assurer qu'elle couvre tout l'espace */
+        min-width: 100vw;
+        min-height: 100svh;
+        object-fit: cover;
+    }
+}
+
 /* Overlay sombre par-dessus l'image/vidéo */
 .hero__overlay {
     position: absolute;
