@@ -79,10 +79,9 @@ const CONFIG = {
         // Configuration du fond Hero
         // Options: type "image" ou "video"
         hero: {
-            type: "image",                    // "image" ou "video"
-            src: "./images/hero-bg.jpg",      // Chemin vers le fichier
-            // Pour une vidéo, utiliser: type: "video", src: "./images/hero-bg.mp4"
-            poster: "./images/hero-bg.jpg"    // Image de secours si vidéo (optionnel)
+            type: "video",                    // "image" ou "video"
+            src: "./images/hero-bg.mp4",      // Chemin vers le fichier
+            poster: "./images/hero-bg.jpg"    // Image de secours pendant le chargement
         },
 
         // Configuration de la galerie
