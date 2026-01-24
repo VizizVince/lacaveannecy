@@ -615,8 +615,8 @@ const CONFIG = {
             sheetName: "Notes Google"
         },
 
-        // Lien vers la page Google Business
-        lienGoogle: "https://share.google/b1pSe1WvUjmONMveC",
+        // Lien vers la page Google Business (avis)
+        lienGoogle: "https://share.google/YoMsP8MOrm8Sq2tWV",
 
         // Textes de la section avis
         textes: {
