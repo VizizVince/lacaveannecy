@@ -163,15 +163,19 @@ function generateFilters(categories) {
     // Onglets des catégories
     categories.forEach(cat => {
         const id = slugify(cat.nom);
-        const shortName = cat.nom
+        const shortName = (cat.nom || '')
             .replace('Vallée de la ', '')
             .replace('Vallée du ', '')
             .replace('Les ', '');
-        
+        // Sécurité: échapper toutes les données
+        const safeId = escapeHtml(id);
+        const safeEmoji = sanitizeEmoji(cat.emoji);
+        const safeName = escapeHtml(shortName);
+
         html += `
-            <button class="filter-tab" data-filter="${id}">
-                <span>${cat.emoji}</span>
-                <span>${shortName}</span>
+            <button class="filter-tab" data-filter="${safeId}">
+                <span>${safeEmoji}</span>
+                <span>${safeName}</span>
             </button>
         `;
     });
@@ -187,28 +191,37 @@ function generateFilters(categories) {
  */
 function setupFilterEvents() {
     const filterTabs = document.querySelectorAll('.filter-tab');
-    
+
     filterTabs.forEach(tab => {
         tab.addEventListener('click', function() {
             const filter = tab.dataset.filter;
-            
+
             // Mettre à jour l'onglet actif
             filterTabs.forEach(t => t.classList.remove('filter-tab--active'));
             tab.classList.add('filter-tab--active');
-            
+
             CarteState.activeFilter = filter;
-            
+
             // Filtrer les sections
             const menuSections = document.querySelectorAll('.menu-section');
             menuSections.forEach(section => {
                 if (filter === 'all' || section.dataset.category === filter) {
                     section.style.display = '';
                     section.classList.add('animate-visible');
+
+                    // Si filtre "all", activer le mode dépliable
+                    if (filter === 'all') {
+                        section.classList.add('menu-section--collapsible-mode');
+                    } else {
+                        // Si filtre spécifique, désactiver le mode dépliable et déplier
+                        section.classList.remove('menu-section--collapsible-mode');
+                        section.classList.remove('menu-section--collapsed');
+                    }
                 } else {
                     section.style.display = 'none';
                 }
             });
-            
+
             // Scroll vers la première section visible (sauf si "Tout")
             if (filter !== 'all') {
                 const firstVisible = document.querySelector(`.menu-section[data-category="${filter}"]`);
@@ -216,7 +229,7 @@ function setupFilterEvents() {
                     const headerOffset = 160; // Header + filter nav
                     const elementPosition = firstVisible.getBoundingClientRect().top;
                     const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                    
+
                     window.scrollTo({
                         top: offsetPosition,
                         behavior: 'smooth'
@@ -239,31 +252,44 @@ function setupFilterEvents() {
 function renderMenu(categories) {
     const container = document.getElementById('menu-container');
     if (!container) return;
-    
+
     let html = '';
-    
+
     categories.forEach((cat, index) => {
         const id = slugify(cat.nom);
-        
+        // Sécurité: échapper toutes les données
+        const safeId = escapeHtml(id);
+        const safeEmoji = sanitizeEmoji(cat.emoji);
+        const safeName = escapeHtml(cat.nom);
+        const safeSubtitle = escapeHtml(generateSubtitle(cat));
+
         html += `
-            <section class="menu-section scroll-reveal" data-category="${id}" id="${id}">
-                <div class="menu-section__header">
-                    <div class="menu-section__icon">${cat.emoji}</div>
-                    <div>
-                        <h2 class="menu-section__title">${escapeHtml(cat.nom)}</h2>
-                        <p class="menu-section__subtitle">${generateSubtitle(cat)}</p>
+            <section class="menu-section scroll-reveal menu-section--collapsible-mode" data-category="${safeId}" id="${safeId}">
+                <div class="menu-section__header menu-section__header--collapsible" data-section="${safeId}">
+                    <div class="menu-section__icon">${safeEmoji}</div>
+                    <div class="menu-section__header-content">
+                        <h2 class="menu-section__title">${safeName}</h2>
+                        <p class="menu-section__subtitle">${safeSubtitle}</p>
+                    </div>
+                    <div class="menu-section__toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
                     </div>
                 </div>
-                
-                <div class="menu-columns">
+
+                <div class="menu-columns menu-section__content">
                     ${renderSousCategories(cat.sousCategories)}
                 </div>
             </section>
         `;
     });
-    
+
     container.innerHTML = html;
-    
+
+    // Ajouter les événements de clic pour le dépliage (seulement si filtre "all")
+    setupCollapsibleEvents();
+
     // Déclencher les animations
     setTimeout(() => {
         document.querySelectorAll('.menu-section').forEach((section, i) => {
@@ -272,6 +298,25 @@ function renderMenu(categories) {
             }, i * 100);
         });
     }, 100);
+}
+
+/**
+ * Configure les événements de dépliage des sections
+ */
+function setupCollapsibleEvents() {
+    const headers = document.querySelectorAll('.menu-section__header--collapsible');
+
+    headers.forEach(header => {
+        header.addEventListener('click', function(e) {
+            // Ne pas plier si un filtre spécifique est actif
+            if (CarteState.activeFilter !== 'all') return;
+
+            const section = header.closest('.menu-section');
+            if (!section) return;
+
+            section.classList.toggle('menu-section--collapsed');
+        });
+    });
 }
 
 /**
@@ -301,37 +346,38 @@ function renderSousCategories(sousCategories) {
 
 /**
  * Génère le HTML des vins
+ * Sécurité: toutes les données sont échappées
  */
 function renderVins(vins) {
     return vins.map(vin => {
         // Construire le nom avec millésime si présent
         let nomComplet = escapeHtml(vin.nom);
         if (vin.millesime) {
-            nomComplet += ` <span class="menu-item__millesime">${vin.millesime}</span>`;
+            nomComplet += ` <span class="menu-item__millesime">${escapeHtml(vin.millesime)}</span>`;
         }
-        
+
         // Construire la ligne du domaine avec description si présente
         let domaineText = escapeHtml(vin.domaine);
         if (vin.description) {
             domaineText += ` — ${escapeHtml(vin.description)}`;
         }
-        
-        // Construire les prix
+
+        // Construire les prix (échappés pour la sécurité)
         let prixHtml = '';
         if (vin.prixVerre && vin.prixBouteille) {
             prixHtml = `
                 <div class="menu-item__prices">
-                    <span class="menu-item__price menu-item__price--verre" title="Prix au verre">${vin.prixVerre}</span>
+                    <span class="menu-item__price menu-item__price--verre" title="Prix au verre">${escapeHtml(vin.prixVerre)}</span>
                     <span class="menu-item__price-separator">/</span>
-                    <span class="menu-item__price menu-item__price--bouteille" title="Prix bouteille">${vin.prixBouteille}</span>
+                    <span class="menu-item__price menu-item__price--bouteille" title="Prix bouteille">${escapeHtml(vin.prixBouteille)}</span>
                 </div>
             `;
         } else if (vin.prixBouteille) {
-            prixHtml = `<span class="menu-item__price">${vin.prixBouteille}</span>`;
+            prixHtml = `<span class="menu-item__price">${escapeHtml(vin.prixBouteille)}</span>`;
         } else if (vin.prixVerre) {
-            prixHtml = `<span class="menu-item__price menu-item__price--verre">${vin.prixVerre}</span>`;
+            prixHtml = `<span class="menu-item__price menu-item__price--verre">${escapeHtml(vin.prixVerre)}</span>`;
         }
-        
+
         return `
             <div class="menu-item">
                 <div class="menu-item__info">
@@ -451,13 +497,29 @@ function slugify(text) {
 }
 
 /**
- * Échappe les caractères HTML
+ * Échappe les caractères HTML pour éviter les injections XSS
+ * @param {*} text - Texte à échapper (sera converti en string)
+ * @returns {string} - Texte échappé sécurisé
  */
 function escapeHtml(text) {
-    if (!text) return '';
+    if (text === null || text === undefined) return '';
+    const str = String(text);
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = str;
     return div.innerHTML;
+}
+
+/**
+ * Valide qu'une chaîne contient uniquement des emojis ou caractères sûrs
+ * @param {string} emoji - Emoji à valider
+ * @param {string} fallback - Emoji par défaut
+ * @returns {string} - Emoji validé et échappé
+ */
+function sanitizeEmoji(emoji, fallback = '🍷') {
+    if (!emoji || typeof emoji !== 'string') return fallback;
+    // Limiter la longueur et supprimer les balises HTML potentielles
+    const cleaned = emoji.substring(0, 10).replace(/<[^>]*>/g, '');
+    return escapeHtml(cleaned) || fallback;
 }
 
 /**

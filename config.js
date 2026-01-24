@@ -18,8 +18,8 @@ const CONFIG = {
     
     site: {
         nom: "La Cave Annecy",
-        slogan: "Bar à vins depuis 1987",
-        description: "Bar à vins historique d'Annecy. Plus de 400 références, 40 vins au verre et plats traditionnels.",
+        slogan: "",
+        description: "Bar à vins historique d'Annecy. Plus de 1000 références de vins et produits frais du marché.",
         annee: "2025"
     },
 
@@ -55,38 +55,68 @@ const CONFIG = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 4: IMAGES
+    // SECTION 4: MÉDIAS (IMAGES & VIDÉOS)
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // HERO: Vous pouvez utiliser une image OU une vidéo comme fond
+    //   - Pour une image: type: "image", src: "./images/hero-bg.jpg"
+    //   - Pour une vidéo: type: "video", src: "./images/hero-bg.mp4"
+    //   - Formats vidéo supportés: .mp4, .webm
+    //   - La vidéo sera en boucle, muette et en autoplay
+    //
+    // GALERIE: Chaque élément peut être une image OU une vidéo
+    //   - Images: galerie1.jpg, galerie2.jpg, etc.
+    //   - Vidéos: galerie1.mp4, galerie2.mp4, etc.
+    //   - Le système détecte automatiquement le type selon l'extension
+    //   - Les vidéos jouent automatiquement au survol (muettes)
+    //   - Maximum: 6 éléments (images ou vidéos mélangées)
+    //
     // ═══════════════════════════════════════════════════════════════════════
 
+    medias: {
+        logo: "./images/logo.jpg",
+
+        // Configuration du fond Hero
+        // Options: type "image" ou "video"
+        hero: {
+            type: "image",                    // "image" ou "video"
+            src: "./images/hero-bg.jpg",      // Chemin vers le fichier
+            // Pour une vidéo, utiliser: type: "video", src: "./images/hero-bg.mp4"
+            poster: "./images/hero-bg.jpg"    // Image de secours si vidéo (optionnel)
+        },
+
+        // Configuration de la galerie
+        galerie: {
+            // Dossier contenant les médias
+            dossier: "./images/",
+
+            // Préfixe des fichiers (galerie1, galerie2, etc.)
+            prefixe: "galerie",
+
+            // Extensions à chercher (par ordre de priorité)
+            // Le système essaie d'abord .mp4, puis .webm, puis .jpg, puis .png
+            extensionsVideo: [".mp4", ".webm"],
+            extensionsImage: [".jpg", ".jpeg", ".png", ".webp"],
+
+            // Nombre maximum d'éléments à chercher (1 à 6)
+            maxItems: 6,
+
+            // Métadonnées optionnelles pour chaque élément (tag et titre affichés au survol)
+            metadata: {
+                1: { tag: "Vins", titre: "Notre Sélection" },
+                2: { tag: "Cuisine", titre: "Nos Plats" },
+                3: { tag: "Ambiance", titre: "Notre Univers" },
+                4: { tag: "Moments", titre: "Nos Soirées" },
+                5: { tag: "Terroir", titre: "Nos Producteurs" },
+                6: { tag: "Passion", titre: "Notre Équipe" }
+            }
+        }
+    },
+
+    // Rétrocompatibilité - Ne pas modifier
     images: {
         logo: "./images/logo.jpg",
-        heroBackground: "./images/hero-bg.jpg",
-        galerie: {
-            image1: {
-                src: "./images/galerie-1.jpg",
-                alt: "Sélection de vins",
-                tag: "Vins",
-                titre: "Notre Sélection",
-                type: "portrait"
-            },
-            image2: {
-                src: "./images/galerie-2.jpg",
-                alt: "Plat du jour",
-                tag: "Cuisine",
-                titre: "Nos Plats",
-                type: "paysage"
-            },
-            image3: {
-                src: "./images/galerie-3.jpg",
-                alt: "Ambiance du bar",
-                tag: "Ambiance",
-                titre: "Notre Univers",
-                type: "paysage"
-            },
-            image4: null,
-            image5: null,
-            image6: null
-        }
+        heroBackground: "./images/hero-bg.jpg"
     },
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -97,15 +127,15 @@ const CONFIG = {
         hero: {
             titreLigne1: "LA CAVE",
             titreLigne2: "Annecy",
-            sousTitre: "Une expérience unique au cœur d'Annecy",
-            description: "Avec plus de <strong>400 références</strong> dans notre cave, plus de <strong>40 vins au verre</strong> et des plats traditionnels préparés avec passion, La Cave vous accueille du <strong>Lundi au Samedi à partir de 18h00</strong>.",
+            sousTitre: "Bar à vins depuis 1987 - Un lieu confidentiel et unique sur Annecy",
+            description: "Plus de <strong>1000 références de vins</strong>, une sélection de <strong>produits frais du marché du jour</strong> préparées par notre chef. À partager sans modération. <strong>On vous attends !</strong>",
             boutonCarte: "Découvrir la carte",
             boutonContact: "Nous trouver"
         },
         galerie: {
             badge: "Notre univers",
             titre: "Galerie",
-            description: "Plongez dans l'atmosphère chaleureuse de La Cave, entre vins d'exception et plats savoureux.",
+            description: "Plongez dans l'ambiance festive et conviviale de La Cave, entre vins d'exception et plats savoureux.",
             boutonInstagram: "Plus de photos sur Instagram"
         },
         agenda: {
@@ -228,6 +258,102 @@ const CONFIG = {
                 ]
             }
         ]
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SECTION 7b: EMOJIS DES CATÉGORIES
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // Personnalisez les emojis affichés pour chaque catégorie de la carte
+    // et du menu. Les noms doivent correspondre exactement à ceux de votre
+    // Google Sheets (insensible à la casse).
+    //
+    // CARTE DES VINS: Chaque région/catégorie peut avoir son emoji
+    // MENU: Chaque type de plat peut avoir son emoji
+    //
+    // Pour trouver des emojis: https://emojipedia.org/
+    // ═══════════════════════════════════════════════════════════════════════
+
+    emojis: {
+        // ───────────────────────────────────────────────────────────────────
+        // EMOJIS DE LA CARTE DES VINS
+        // ───────────────────────────────────────────────────────────────────
+        // Clé = nom de la catégorie (en minuscules)
+        // Valeur = emoji à afficher
+
+        carte: {
+            // Bulles & Champagnes
+            'les bulles': '✨',
+            'bulles': '✨',
+            'champagne': '🥂',
+            'crémant': '🍾',
+
+            // Régions françaises
+            'savoie': '⛰️',
+            'loire': '🏰',
+            'bourgogne': '🍇',
+            'rhône': '☀️',
+            'bordeaux': '🏛️',
+            'alsace': '🏠',
+            'jura': '🌲',
+            'languedoc': '🌿',
+            'provence': '💜',
+            'sud-ouest': '🦆',
+            'beaujolais': '🍒',
+            'corse': '🏝️',
+
+            // Types de vins
+            'blancs': '🥂',
+            'rouges': '🍷',
+            'rosés': '🌸',
+            'orange': '🍊',
+            'vins doux': '🍯',
+            'liquoreux': '✨',
+
+            // International
+            'italie': '🇮🇹',
+            'espagne': '🇪🇸',
+            'portugal': '🇵🇹',
+            'allemagne': '🇩🇪',
+            'autriche': '🇦🇹',
+            'grèce': '🇬🇷',
+            'géorgie': '🏺',
+
+            // Autres
+            'bières': '🍺',
+            'cidres': '🍏',
+            'spiritueux': '🥃',
+            'whisky': '🥃',
+            'rhum': '🌴',
+            'cognac': '🍂',
+            'soft': '🍋',
+            'sans alcool': '🍹',
+
+            // Emoji par défaut si catégorie non trouvée
+            'default': '🍷'
+        },
+
+        // ───────────────────────────────────────────────────────────────────
+        // EMOJIS DU MENU NOURRITURE
+        // ───────────────────────────────────────────────────────────────────
+
+        menu: {
+            'finger food': '🥢',
+            'assiettes du marché': '🍳',
+            'desserts': '🍰',
+            'entrées': '🥗',
+            'plats': '🍽️',
+            'fromages': '🧀',
+            'charcuterie': '🥓',
+            'végétarien': '🥬',
+            'soupes': '🍲',
+            'salades': '🥗',
+            'tapas': '🫒',
+            'planches': '🪵',
+
+            // Emoji par défaut si catégorie non trouvée
+            'default': '🍽️'
+        }
     },
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -464,9 +590,78 @@ const CONFIG = {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // SECTION 9: MENTIONS LÉGALES
+    // SECTION 9: AVIS GOOGLE - CONNEXION GOOGLE SHEETS
     // ═══════════════════════════════════════════════════════════════════════
-    
+    //
+    // Les avis Google sont chargés depuis Google Sheets !
+    //
+    // Structure de l'onglet "Notes Google":
+    // - A2: Note globale /5 (ex: 4,7)
+    // - A5: Nombre total d'avis (ex: 238)
+    // - C2:C5: Nom de la personne
+    // - D2:D5: Note donnée /5
+    // - E2:E5: Commentaire
+    // - F2:F5: Date de publication (format JJ/MM/AAAA ou texte relatif)
+    //
+    // Les données sont chargées dynamiquement. En cas d'erreur, les données
+    // de fallback ci-dessous seront utilisées.
+    //
+    // ═══════════════════════════════════════════════════════════════════════
+
+    googleAvis: {
+        // Connexion Google Sheets
+        googleSheets: {
+            id: "1CR8nC7BKznKwmb9YzacUdoQ1OW-ZFzyjTOTx65BZ_N4",
+            sheetName: "Notes Google"
+        },
+
+        // Lien vers la page Google Business
+        lienGoogle: "https://share.google/b1pSe1WvUjmONMveC",
+
+        // Textes de la section avis
+        textes: {
+            titreSectionContact: "Ce que nos clients disent",
+            boutonVoirTous: "Voir tous les avis"
+        },
+
+        // ═══════════════════════════════════════════════════════════════════
+        // FALLBACK: Données utilisées si Google Sheets est indisponible
+        // ═══════════════════════════════════════════════════════════════════
+
+        // Note globale (sur 5) - Fallback
+        noteGlobale: 4.7,
+
+        // Nombre total d'avis - Fallback
+        nombreAvis: 238,
+
+        // Top 3 des meilleurs avis (affichés dans la section Contact)
+        // Limitez les commentaires à 150 caractères maximum
+        topAvis: [
+            {
+                auteur: "Marie L.",
+                note: 5,
+                commentaire: "Un endroit magique avec une sélection de vins exceptionnelle. Le personnel est aux petits soins et les conseils sont toujours justes. On y revient !",
+                dateRelative: "il y a 2 semaines"
+            },
+            {
+                auteur: "Thomas D.",
+                note: 5,
+                commentaire: "La meilleure cave à vins d'Annecy ! Ambiance chaleureuse, vins de qualité et planches de charcuterie délicieuses. Un incontournable.",
+                dateRelative: "il y a 1 mois"
+            },
+            {
+                auteur: "Sophie M.",
+                note: 5,
+                commentaire: "Coup de coeur pour ce bar à vins authentique. Les assiettes du marché sont un régal et le choix de vins naturels est impressionnant.",
+                dateRelative: "il y a 2 mois"
+            }
+        ]
+    },
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SECTION 10: MENTIONS LÉGALES
+    // ═══════════════════════════════════════════════════════════════════════
+
     legal: {
         copyright: "Tous droits réservés.",
         avertissement: "L'abus d'alcool est dangereux pour la santé. À consommer avec modération."
