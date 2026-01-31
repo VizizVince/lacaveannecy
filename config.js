@@ -621,7 +621,7 @@ const CONFIG = {
         },
 
         // Lien vers la page Google Business (avis)
-        lienGoogle: "https://share.google/YoMsP8MOrm8Sq2tWV",
+        lienGoogle: "https://www.google.com/search?sca_esv=fc896dc4d2a57eed&rlz=1C5CHFA_enFR1142FR1144&sxsrf=ANbL-n5TAXBaVIPFJSwNnTpH5C0aMzJsWQ:1769881894813&q=la+cave+annecy&si=AL3DRZHrmvnFAVQPOO2Bzhf8AX9KZZ6raUI_dT7DG_z0kV2_x1OVAh4FqnKH_c2v03kCl0DYwlEaRJ5udcFGFM9ekDZb8gKOFZ_7oASfHDGmrjx2JQ-E1LhSyU_zex171rv77X84LIbB&sa=X&sqi=2&ved=2ahUKEwjNzYntq7aSAxXnLFkFHZ6JCNMQrrQLegQIHBAA&biw=1920&bih=879&dpr=1&aic=0",
 
         // Textes de la section avis
         textes: {
