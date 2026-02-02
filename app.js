@@ -962,10 +962,6 @@ function generateGallery() {
                             <polygon points="5 3 19 12 5 21 5 3"/>
                         </svg>
                     </div>
-                    <div class="gallery-item__overlay">
-                        <span class="gallery-item__tag">${safeTag}</span>
-                        <h3 class="gallery-item__title">${safeTitle}</h3>
-                    </div>
                 `;
 
                 // Ajouter les gestionnaires pour lecture au survol
@@ -1003,10 +999,6 @@ function generateGallery() {
 
                 item.innerHTML = `
                     <img src="${safeSrc}" alt="${safeTitle}" loading="lazy">
-                    <div class="gallery-item__overlay">
-                        <span class="gallery-item__tag">${safeTag}</span>
-                        <h3 class="gallery-item__title">${safeTitle}</h3>
-                    </div>
                 `;
             }
 
