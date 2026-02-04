@@ -193,7 +193,7 @@
 }
 
 /* ========================================
-   MILLÉSIME ET DESCRIPTION
+   MILLÉSIME, FORMAT ET DESCRIPTION
 ======================================== */
 
 .menu-item__millesime {
@@ -206,6 +206,21 @@
     border-radius: var(--radius-sm);
     margin-left: var(--space-xs);
     vertical-align: middle;
+}
+
+/* Format de bouteille (Magnum, Jéroboam, etc.) */
+.menu-item__format {
+    font-family: var(--font-body);
+    font-size: var(--size-xs);
+    font-weight: 500;
+    color: var(--color-accent);
+    background: linear-gradient(135deg, rgba(var(--color-accent-rgb, 163, 130, 84), 0.15), rgba(var(--color-accent-rgb, 163, 130, 84), 0.08));
+    border: 1px solid rgba(var(--color-accent-rgb, 163, 130, 84), 0.3);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    margin-left: var(--space-xs);
+    vertical-align: middle;
+    white-space: nowrap;
 }
 
 .menu-item__domain {

@@ -307,11 +307,11 @@ const SheetsLoader = (function() {
     function groupByCategory(vins) {
         const categories = {};
         const categoryOrder = [];
-        
+
         vins.forEach(vin => {
             const cat = vin.categorie || 'Autres';
             const sousCat = vin.sous_categorie || 'Général';
-            
+
             if (!categories[cat]) {
                 categories[cat] = {
                     nom: cat,
@@ -321,45 +321,84 @@ const SheetsLoader = (function() {
                 };
                 categoryOrder.push(cat);
             }
-            
+
             if (!categories[cat].sousCategories[sousCat]) {
                 categories[cat].sousCategories[sousCat] = [];
             }
-            
+
             categories[cat].sousCategories[sousCat].push({
                 nom: vin.nom || '',
                 domaine: vin.domaine || '',
                 millesime: vin.millesime || '',
                 description: vin.description || '',
+                format: vin.format || '',  // Nouveau: format de bouteille (75cl, Magnum, etc.)
                 prixVerre: formatPrix(vin.prix_verre),
                 prixBouteille: formatPrix(vin.prix_bouteille),
                 ordre: parseInt(vin.ordre) || 999
             });
         });
-        
+
         // Convertir en tableau trié
         const result = categoryOrder
             .filter((cat, index) => categoryOrder.indexOf(cat) === index) // Unique
             .map(cat => categories[cat])
             .sort((a, b) => a.ordre - b.ordre);
-        
+
         return result;
     }
     
     /**
+     * Normalise une chaîne pour la recherche d'emoji
+     * Retire les accents et met en minuscules
+     */
+    function normalizeForEmoji(str) {
+        return str
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Retirer les accents
+            .trim();
+    }
+
+    /**
      * Retourne l'emoji correspondant à une catégorie de la carte
      * Utilise CONFIG.emojis.carte depuis config.js
+     *
+     * Ordre de recherche :
+     * 1. Correspondance exacte (clé normalisée)
+     * 2. Correspondance partielle (la catégorie contient la clé)
+     * 3. Emoji par défaut
      */
     function getCategoryEmoji(categorie) {
-        const key = categorie.toLowerCase().trim();
+        const normalizedCat = normalizeForEmoji(categorie);
 
         // Utiliser les emojis de config.js si disponibles
         if (typeof CONFIG !== 'undefined' && CONFIG.emojis && CONFIG.emojis.carte) {
             const configEmojis = CONFIG.emojis.carte;
-            if (configEmojis[key]) {
-                return configEmojis[key];
+
+            // 1. Correspondance exacte
+            if (configEmojis[normalizedCat]) {
+                return configEmojis[normalizedCat];
             }
-            // Retourner l'emoji par défaut de config.js
+
+            // 2. Chercher une correspondance partielle
+            // Ex: "Vins Blancs" devrait matcher "vins blancs" même si la catégorie est "Les Vins Blancs"
+            for (const [key, emoji] of Object.entries(configEmojis)) {
+                if (key === 'default') continue;
+
+                const normalizedKey = normalizeForEmoji(key);
+
+                // La catégorie contient la clé
+                if (normalizedCat.includes(normalizedKey)) {
+                    return emoji;
+                }
+
+                // La clé contient la catégorie (pour les variantes courtes)
+                if (normalizedKey.includes(normalizedCat) && normalizedCat.length > 3) {
+                    return emoji;
+                }
+            }
+
+            // 3. Retourner l'emoji par défaut de config.js
             return configEmojis['default'] || '🍷';
         }
 

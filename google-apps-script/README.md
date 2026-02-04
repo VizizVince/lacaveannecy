@@ -2,11 +2,15 @@
 
 Script Google Apps Script pour parser automatiquement les PDFs de carte des vins et mettre à jour un Google Sheets.
 
+**Version recommandée : `carte-vins-parser-v3.gs`**
+
 ## Fonctionnalités
 
 - **Surveillance automatique** du dossier Google Drive pour les nouveaux PDFs
 - **Parsing robuste** des cartes de vins (format "La Bible")
-- **Extraction intelligente** des informations : catégorie, sous-catégorie, domaine, cuvée, millésime, prix
+- **Extraction intelligente** des informations : catégorie, sous-catégorie, domaine, cuvée, millésime, **format bouteille**, prix
+- **Gestion des formats** : Magnums (1.5L), Jéroboams (3L), etc.
+- **Mapping automatique des catégories** : PDF → noms du site
 - **Mise à jour automatique** du Google Sheets (total wipe puis reconstruction)
 - **Menu intégré** dans Google Sheets pour les actions manuelles
 - **Logs détaillés** pour le debug
@@ -90,7 +94,7 @@ Dans Apps Script, vous pouvez exécuter :
 
 ## Structure du Google Sheets
 
-Le script crée/met à jour les colonnes suivantes :
+Le script crée/met à jour les colonnes suivantes (11 colonnes) :
 
 | Colonne | Description | Exemple |
 |---------|-------------|---------|
@@ -100,10 +104,25 @@ Le script crée/met à jour les colonnes suivantes :
 | `domaine` | Producteur | Domaine Rijckaert, E. Guigal |
 | `millesime` | Année ou NM | 2020, 2023, NM |
 | `description` | Description (optionnel) | |
+| `format` | **NOUVEAU** : Taille de bouteille | Magnum (1.5L), Jéroboam (3L) |
 | `prix_verre` | Prix au verre (optionnel) | |
 | `prix_bouteille` | Prix bouteille | 48, 125, 290 |
 | `disponible` | Disponibilité | TRUE |
 | `ordre` | Ordre d'affichage | 10, 11, 12... |
+
+### Mapping des catégories PDF → Site
+
+| PDF "La Bible" | Catégorie site | Emoji |
+|----------------|----------------|-------|
+| LES BULLES | Bulles | ✨ |
+| LES CHAMPAGNES | Champagnes | 🥂 |
+| LES VINS ROSÉS | Vins Rosés | 🌸 |
+| LES VINS LIQUOREUX | Vins Doux et Liquoreux | 🍯 |
+| LES VINS ORANGES | Vins de Macération | 🍊 |
+| LES VINS BLANCS | Vins Blancs | 🥂 |
+| LES VINS ROUGES | Vins Rouges | 🍷 |
+| MAGNUMS & JÉROBOAMS | Magnums & Jéroboams | 🍾 |
+| CIDRE & POIRÉ | Cidres et Poirés | 🍏 |
 
 ## Format PDF supporté
 
