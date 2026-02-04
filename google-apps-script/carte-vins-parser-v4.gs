@@ -309,6 +309,7 @@ function findLatestPDF() {
 
 /**
  * Extrait le texte d'un PDF via Google Drive OCR
+ * Compatible Drive API v3
  */
 function extractTextFromPDF(file) {
   let tempDocId = null;
@@ -317,15 +318,18 @@ function extractTextFromPDF(file) {
     log('   Conversion PDF → Google Doc via OCR...');
 
     const blob = file.getBlob();
+
+    // Drive API v3 : utilise "name" au lieu de "title"
     const resource = {
-      title: 'temp_ocr_' + new Date().getTime(),
+      name: 'temp_ocr_' + new Date().getTime(),
       mimeType: MimeType.GOOGLE_DOCS
     };
 
-    // Créer le document temporaire
-    const tempDoc = Drive.Files.insert(resource, blob, {
+    // Drive API v3 : utilise Drive.Files.create() au lieu de insert()
+    const tempDoc = Drive.Files.create(resource, blob, {
       ocr: true,
-      ocrLanguage: 'fr'
+      ocrLanguage: 'fr',
+      fields: 'id,name'
     });
 
     tempDocId = tempDoc.id;
@@ -347,10 +351,17 @@ function extractTextFromPDF(file) {
     // Toujours supprimer le document temporaire
     if (tempDocId) {
       try {
+        // Drive API v3 : utilise Drive.Files.remove() (identique)
         Drive.Files.remove(tempDocId);
         log('   Document temporaire supprimé');
       } catch (e) {
-        log('⚠️ Impossible de supprimer le doc temporaire: ' + e.message);
+        // Alternative : utiliser DriveApp si Drive.Files.remove échoue
+        try {
+          DriveApp.getFileById(tempDocId).setTrashed(true);
+          log('   Document temporaire mis à la corbeille');
+        } catch (e2) {
+          log('⚠️ Impossible de supprimer le doc temporaire: ' + e.message);
+        }
       }
     }
   }
