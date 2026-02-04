@@ -283,56 +283,155 @@ const CONFIG = {
         // ───────────────────────────────────────────────────────────────────
         // EMOJIS DE LA CARTE DES VINS
         // ───────────────────────────────────────────────────────────────────
-        // Clé = nom de la catégorie (en minuscules)
+        // Clé = nom de la catégorie (en minuscules, sans accents)
         // Valeur = emoji à afficher
+        //
+        // IMPORTANT: Le système cherche d'abord une correspondance exacte,
+        // puis une correspondance partielle (contient le mot clé)
+        //
+        // Les catégories principales du PDF "La Bible" :
+        // - Bulles (crémants, pétillants)
+        // - Champagnes
+        // - Vins Rosés
+        // - Vins Doux et Liquoreux
+        // - Vins de Macération (oranges)
+        // - Vins Blancs
+        // - Vins Rouges
+        // - Magnums & Jéroboams
+        // - Cidres et Poirés
+        // - Bières et Cidres
 
         carte: {
+            // ═══════════════════════════════════════════════════════════════
+            // CATÉGORIES PRINCIPALES (correspondance exacte prioritaire)
+            // ═══════════════════════════════════════════════════════════════
+
             // Bulles & Champagnes
-            'les bulles': '✨',
             'bulles': '✨',
+            'les bulles': '✨',
+            'champagnes': '🥂',
+            'les champagnes': '🥂',
             'champagne': '🥂',
-            'crémant': '🍾',
+            'cremant': '🍾',
+            'cremants': '🍾',
 
-            // Régions françaises
-            'savoie': '⛰️',
-            'loire': '🏰',
-            'bourgogne': '🍇',
-            'rhône': '☀️',
-            'bordeaux': '🏛️',
-            'alsace': '🏠',
-            'jura': '🌲',
-            'languedoc': '🌿',
-            'provence': '💜',
-            'sud-ouest': '🦆',
-            'beaujolais': '🍒',
-            'corse': '🏝️',
+            // Vins par couleur
+            'vins blancs': '🥂',
+            'les vins blancs': '🥂',
+            'vins rouges': '🍷',
+            'les vins rouges': '🍷',
+            'vins roses': '🌸',
+            'les vins roses': '🌸',
+            'roses': '🌸',
 
-            // Types de vins
-            'blancs': '🥂',
-            'rouges': '🍷',
-            'rosés': '🌸',
-            'orange': '🍊',
+            // Vins spéciaux
+            'vins doux et liquoreux': '🍯',
+            'les vins liquoreux': '🍯',
+            'vins liquoreux': '🍯',
+            'liquoreux': '🍯',
             'vins doux': '🍯',
-            'liquoreux': '✨',
+            'vins de maceration': '🍊',
+            'les vins oranges': '🍊',
+            'vins oranges': '🍊',
+            'orange': '🍊',
+            'maceration': '🍊',
 
-            // International
+            // Grands formats
+            'magnums & jeroboams': '🍾',
+            'magnums': '🍾',
+            'jeroboams': '🍾',
+            'grands formats': '🍾',
+
+            // Bières & Cidres
+            'bieres et cidres': '🍺',
+            'bieres': '🍺',
+            'biere': '🍺',
+            'cidres et poires': '🍏',
+            'cidres': '🍏',
+            'cidre': '🍏',
+            'poires': '🍐',
+            'poire': '🍐',
+
+            // ═══════════════════════════════════════════════════════════════
+            // RÉGIONS FRANÇAISES
+            // ═══════════════════════════════════════════════════════════════
+
+            'savoie': '⛰️',
+            'bugey': '⛰️',
+            'jura': '🌲',
+            'alsace': '🏠',
+
+            'bourgogne': '🍇',
+            'beaujolais': '🍒',
+
+            'vallee de la loire': '🏰',
+            'loire': '🏰',
+            'anjou': '🏰',
+            'saumur': '🏰',
+            'touraine': '🏰',
+            'sancerre': '🏰',
+
+            'vallee du rhone': '☀️',
+            'rhone': '☀️',
+            'cotes du rhone': '☀️',
+            'chateauneuf': '☀️',
+
+            'bordeaux': '🏛️',
+            'medoc': '🏛️',
+            'saint-emilion': '🏛️',
+            'pomerol': '🏛️',
+
+            'languedoc': '🌿',
+            'roussillon': '🌿',
+            'languedoc-roussillon': '🌿',
+
+            'provence': '💜',
+            'bandol': '💜',
+            'cotes de provence': '💜',
+
+            'sud-ouest': '🦆',
+            'cahors': '🦆',
+            'madiran': '🦆',
+
+            'corse': '🏝️',
+            'patrimonio': '🏝️',
+
+            // ═══════════════════════════════════════════════════════════════
+            // VINS DU MONDE
+            // ═══════════════════════════════════════════════════════════════
+
+            'vins du monde': '🌍',
+            'monde': '🌍',
             'italie': '🇮🇹',
             'espagne': '🇪🇸',
             'portugal': '🇵🇹',
             'allemagne': '🇩🇪',
             'autriche': '🇦🇹',
-            'grèce': '🇬🇷',
-            'géorgie': '🏺',
+            'suisse': '🇨🇭',
+            'grece': '🇬🇷',
+            'georgie': '🏺',
+            'australie': '🇦🇺',
+            'etats-unis': '🇺🇸',
+            'usa': '🇺🇸',
+            'chine': '🇨🇳',
 
-            // Autres
-            'bières': '🍺',
-            'cidres': '🍏',
+            // ═══════════════════════════════════════════════════════════════
+            // AUTRES BOISSONS
+            // ═══════════════════════════════════════════════════════════════
+
             'spiritueux': '🥃',
             'whisky': '🥃',
             'rhum': '🌴',
             'cognac': '🍂',
+            'armagnac': '🍂',
+            'calvados': '🍎',
+            'eau de vie': '✨',
+            'digestifs': '🥃',
+
             'soft': '🍋',
+            'softs': '🍋',
             'sans alcool': '🍹',
+            'jus': '🧃',
 
             // Emoji par défaut si catégorie non trouvée
             'default': '🍷'

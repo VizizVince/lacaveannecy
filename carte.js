@@ -350,8 +350,15 @@ function renderSousCategories(sousCategories) {
  */
 function renderVins(vins) {
     return vins.map(vin => {
-        // Construire le nom avec millésime si présent
+        // Construire le nom avec millésime et format si présents
         let nomComplet = escapeHtml(vin.nom);
+
+        // Ajouter le format de bouteille si différent de 75cl standard
+        if (vin.format && !isStandardFormat(vin.format)) {
+            nomComplet += ` <span class="menu-item__format">${escapeHtml(vin.format)}</span>`;
+        }
+
+        // Ajouter le millésime
         if (vin.millesime) {
             nomComplet += ` <span class="menu-item__millesime">${escapeHtml(vin.millesime)}</span>`;
         }
@@ -388,6 +395,19 @@ function renderVins(vins) {
             </div>
         `;
     }).join('');
+}
+
+/**
+ * Vérifie si le format est standard (75cl) et ne nécessite pas d'affichage
+ */
+function isStandardFormat(format) {
+    if (!format) return true;
+    const normalized = format.toLowerCase().replace(/\s/g, '');
+    // Les formats standards qu'on n'affiche pas
+    return normalized === '75cl' ||
+           normalized === '0.75l' ||
+           normalized === '750ml' ||
+           normalized === '';
 }
 
 /**
