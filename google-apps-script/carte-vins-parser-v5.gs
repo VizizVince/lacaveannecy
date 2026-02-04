@@ -606,24 +606,23 @@ function updateSheet(wines) {
     sheet = ss.insertSheet(CONFIG.SHEET_NAME);
   }
 
-  // Wipe complet
-  const lastRow = sheet.getLastRow();
-  if (lastRow > 1) {
-    sheet.deleteRows(2, lastRow - 1);
-  }
+  // Méthode robuste : effacer tout puis réécrire
+  // 1. Effacer tout le contenu du sheet
+  sheet.clear();
 
-  // Header
+  // 2. Réécrire le header
   const headerRange = sheet.getRange(1, 1, 1, CONFIG.COLUMNS.length);
   headerRange.setValues([CONFIG.COLUMNS]);
   headerRange.setFontWeight('bold');
   headerRange.setBackground('#f3f3f3');
 
-  // Données
+  // 3. Insérer les données
   if (wines.length > 0) {
     const data = wines.map(wine => CONFIG.COLUMNS.map(col => wine[col] !== undefined ? wine[col] : ''));
     sheet.getRange(2, 1, data.length, CONFIG.COLUMNS.length).setValues(data);
   }
 
+  // 4. Formatage
   sheet.autoResizeColumns(1, CONFIG.COLUMNS.length);
   sheet.setFrozenRows(1);
 
