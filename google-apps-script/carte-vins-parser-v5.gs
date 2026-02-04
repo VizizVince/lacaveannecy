@@ -671,24 +671,51 @@ function logStats(wines) {
 // TRIGGERS
 // ═══════════════════════════════════════════════════════════════════════════
 
+/**
+ * Configure un trigger toutes les heures
+ */
 function setupTrigger() {
+  // Supprimer les anciens triggers
   removeTriggers();
-  ScriptApp.newTrigger('importLatestPDF').timeDriven().everyHours(1).create();
-  log('✅ Trigger horaire activé');
+
+  // Créer le nouveau trigger (syntaxe explicite)
+  var trigger = ScriptApp.newTrigger('importLatestPDF');
+  var timeBased = trigger.timeDriven();
+  timeBased.everyHours(1);
+  timeBased.create();
+
+  Logger.log('✅ Trigger horaire activé');
+  SpreadsheetApp.getUi().alert('Trigger activé', 'Import automatique toutes les heures.', SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
+/**
+ * Configure un trigger toutes les 15 minutes
+ */
 function setupTrigger15Min() {
+  // Supprimer les anciens triggers
   removeTriggers();
-  ScriptApp.newTrigger('importLatestPDF').timeDriven().everyMinutes(15).create();
-  log('✅ Trigger 15min activé');
+
+  // Créer le nouveau trigger (syntaxe explicite)
+  var trigger = ScriptApp.newTrigger('importLatestPDF');
+  var timeBased = trigger.timeDriven();
+  timeBased.everyMinutes(15);
+  timeBased.create();
+
+  Logger.log('✅ Trigger 15min activé');
+  SpreadsheetApp.getUi().alert('Trigger activé', 'Import automatique toutes les 15 minutes.', SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
+/**
+ * Supprime tous les triggers existants
+ */
 function removeTriggers() {
-  ScriptApp.getProjectTriggers().forEach(t => {
-    if (t.getHandlerFunction() === 'importLatestPDF') {
-      ScriptApp.deleteTrigger(t);
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'importLatestPDF') {
+      ScriptApp.deleteTrigger(triggers[i]);
     }
-  });
+  }
+  Logger.log('Triggers supprimés');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
