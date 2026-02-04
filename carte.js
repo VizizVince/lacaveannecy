@@ -320,14 +320,14 @@ function setupCollapsibleEvents() {
 }
 
 /**
- * Génère le sous-titre d'une catégorie (liste des sous-catégories)
+ * Génère le sous-titre d'une catégorie
+ * Note: L'indexation des sous-catégories a été retirée car elle devenait
+ * illisible avec un grand nombre de références (1000+)
  */
 function generateSubtitle(category) {
-    const sousCats = Object.keys(category.sousCategories);
-    if (sousCats.length === 1 && sousCats[0] === 'Général') {
-        return '';
-    }
-    return sousCats.filter(s => s !== 'Général').join(' • ');
+    // Retourne le nombre de références dans la catégorie
+    const totalVins = Object.values(category.sousCategories).reduce((acc, vins) => acc + vins.length, 0);
+    return `${totalVins} référence${totalVins > 1 ? 's' : ''}`;
 }
 
 /**
