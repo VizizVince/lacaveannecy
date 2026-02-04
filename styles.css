@@ -1673,11 +1673,10 @@ a {
     cursor: default;
 }
 
-/* Menu Columns */
+/* Menu Columns - Layout Masonry adaptatif */
 .menu-columns {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: var(--space-2xl);
+    column-count: 3;
+    column-gap: var(--space-xl);
 }
 
 /* Menu Category */
@@ -1685,6 +1684,14 @@ a {
     padding: var(--space-lg);
     background: var(--color-cream);
     border-radius: var(--radius-lg);
+    /* Évite la coupure des catégories entre colonnes */
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    /* Espacement entre les cartes */
+    margin-bottom: var(--space-lg);
+    display: inline-block;
+    width: 100%;
 }
 
 .menu-category__title {
@@ -1788,7 +1795,7 @@ a {
     }
     
     .menu-columns {
-        grid-template-columns: 1fr;
+        column-count: 2;
     }
     
     .agenda-grid {
@@ -2101,7 +2108,12 @@ a {
     .menu-category {
         padding: var(--space-md);
     }
-    
+
+    /* Layout masonry 1 colonne sur mobile */
+    .menu-columns {
+        column-count: 1;
+    }
+
     /* Agenda Mobile */
     .event-card {
         flex-direction: column;

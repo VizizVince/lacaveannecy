@@ -261,7 +261,6 @@ function renderMenu(categories) {
         const safeId = escapeHtml(id);
         const safeEmoji = sanitizeEmoji(cat.emoji);
         const safeName = escapeHtml(cat.nom);
-        const safeSubtitle = escapeHtml(generateSubtitle(cat));
 
         html += `
             <section class="menu-section scroll-reveal menu-section--collapsible-mode" data-category="${safeId}" id="${safeId}">
@@ -269,7 +268,6 @@ function renderMenu(categories) {
                     <div class="menu-section__icon">${safeEmoji}</div>
                     <div class="menu-section__header-content">
                         <h2 class="menu-section__title">${safeName}</h2>
-                        <p class="menu-section__subtitle">${safeSubtitle}</p>
                     </div>
                     <div class="menu-section__toggle">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -321,13 +319,10 @@ function setupCollapsibleEvents() {
 
 /**
  * Génère le sous-titre d'une catégorie
- * Note: L'indexation des sous-catégories a été retirée car elle devenait
- * illisible avec un grand nombre de références (1000+)
+ * Note: Le sous-titre a été retiré pour alléger l'interface
  */
 function generateSubtitle(category) {
-    // Retourne le nombre de références dans la catégorie
-    const totalVins = Object.values(category.sousCategories).reduce((acc, vins) => acc + vins.length, 0);
-    return `${totalVins} référence${totalVins > 1 ? 's' : ''}`;
+    return '';
 }
 
 /**
