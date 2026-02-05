@@ -50,7 +50,7 @@ const CONFIG = {
     
     horaires: {
         jours: "Lundi - Samedi",
-        heures: "18h00 - Minuit",
+        heures: "18h30 - 00h00",
         fermeture: "Dimanche"
     },
 
@@ -146,7 +146,7 @@ const CONFIG = {
         agenda: {
             badge: "À venir",
             titre: "Agenda",
-            description: "Découvrez nos prochains événements : dégustations, soirées thématiques et rencontres vigneronnes.",
+            description: "Découvrez nos prochains événements.",
             messageVide: "Aucun événement prévu pour le moment. Restez connectés !",
             messageErreur: "Impossible de charger les événements. Réessayez plus tard.",
             messageChargement: "Chargement des événements..."
@@ -493,7 +493,7 @@ const CONFIG = {
         // Textes de la page Menu
         page: {
             titre: "Notre Menu",
-            sousTitre: "Petite restauration de 18h30 à 23h",
+            sousTitre: "",
             note: "Prix TTC, service compris"
         },
 
