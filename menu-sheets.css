@@ -181,6 +181,21 @@
    MENU CATEGORIES
    ======================================== */
 
+/* Override grid layout for menu page - full width */
+.page-menu .menu-columns {
+    display: block;
+    max-width: 100%;
+}
+
+.page-menu .menu-category {
+    max-width: 100%;
+    margin-bottom: 0;
+}
+
+.page-menu .menu-items {
+    max-width: 100%;
+}
+
 .menu-category {
     margin-bottom: 50px;
 }
