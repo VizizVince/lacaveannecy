@@ -367,10 +367,7 @@
     will-change: max-height, opacity;
 }
 
-/* Séparation visuelle entre sous-catégories */
-.menu-category + .menu-category {
-    margin-top: var(--space-sm);
-}
+/* Note: l'espacement entre sous-catégories est géré par le gap de la grille */
 
 @media (max-width: 768px) {
     .menu-section__controls {
