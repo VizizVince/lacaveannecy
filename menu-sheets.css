@@ -194,6 +194,7 @@
 
 .page-menu .menu-items {
     max-width: 100%;
+    padding: 0 var(--space-lg, 24px);
 }
 
 .menu-category {
@@ -400,6 +401,10 @@
    ======================================== */
 
 @media (max-width: 768px) {
+    .page-menu .menu-items {
+        padding: 0 var(--space-md, 16px);
+    }
+
     .menu-hero {
         padding: 100px 15px 50px;
     }
@@ -481,6 +486,10 @@
    ======================================== */
 
 @media (max-width: 480px) {
+    .page-menu .menu-items {
+        padding: 0 var(--space-sm, 12px);
+    }
+
     .menu-hero h1 {
         font-size: 2rem;
     }
