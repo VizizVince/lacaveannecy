@@ -484,23 +484,28 @@ function renderSousCategories(sousCategories) {
  */
 function renderVins(vins) {
     return vins.map(vin => {
-        // Construire le nom avec millésime et format si présents
-        let nomComplet = escapeHtml(vin.nom);
+        // Construire le nom avec millésime inline
+        let nomHtml = escapeHtml(vin.nom);
 
-        // Ajouter le format de bouteille si différent de 75cl standard
-        if (vin.format && !isStandardFormat(vin.format)) {
-            nomComplet += ` <span class="menu-item__format">${escapeHtml(vin.format)}</span>`;
+        // Ajouter le millésime inline après le nom
+        if (vin.millesime) {
+            nomHtml += `<span class="menu-item__millesime">${escapeHtml(vin.millesime)}</span>`;
         }
 
-        // Ajouter le millésime
-        if (vin.millesime) {
-            nomComplet += ` <span class="menu-item__millesime">${escapeHtml(vin.millesime)}</span>`;
+        // Format de bouteille sur ligne séparée (si non standard)
+        let formatHtml = '';
+        if (vin.format && !isStandardFormat(vin.format)) {
+            formatHtml = `<span class="menu-item__format">${escapeHtml(vin.format)}</span>`;
         }
 
         // Construire la ligne du domaine avec description si présente
-        let domaineText = escapeHtml(vin.domaine);
-        if (vin.description) {
-            domaineText += ` — ${escapeHtml(vin.description)}`;
+        let domaineHtml = '';
+        if (vin.domaine) {
+            let domaineText = escapeHtml(vin.domaine);
+            if (vin.description) {
+                domaineText += ` — ${escapeHtml(vin.description)}`;
+            }
+            domaineHtml = `<span class="menu-item__domain">${domaineText}</span>`;
         }
 
         // Construire les prix (échappés pour la sécurité)
@@ -522,8 +527,9 @@ function renderVins(vins) {
         return `
             <div class="menu-item">
                 <div class="menu-item__info">
-                    <span class="menu-item__name">${nomComplet}</span>
-                    <span class="menu-item__domain">${domaineText}</span>
+                    <span class="menu-item__name">${nomHtml}</span>
+                    ${formatHtml}
+                    ${domaineHtml}
                 </div>
                 ${prixHtml}
             </div>

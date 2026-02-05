@@ -159,18 +159,19 @@
     align-items: baseline;
     gap: 4px;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .menu-item__price {
     font-family: var(--font-display);
-    font-size: var(--size-base);
+    font-size: 1.125rem; /* 18px */
     font-weight: 600;
     color: var(--color-accent);
     white-space: nowrap;
 }
 
 .menu-item__price--verre {
-    font-size: var(--size-sm);
+    font-size: 0.875rem;
     color: var(--color-primary);
     position: relative;
 }
@@ -188,7 +189,7 @@
 
 .menu-item__price-separator {
     color: var(--color-text-light);
-    font-size: var(--size-sm);
+    font-size: 0.75rem;
     margin: 0 2px;
 }
 
@@ -196,49 +197,49 @@
    MILLÉSIME, FORMAT ET DESCRIPTION
 ======================================== */
 
+/* Millésime - Style discret inline */
 .menu-item__millesime {
     font-family: var(--font-body);
-    font-size: var(--size-xs);
+    font-size: 0.8125rem; /* 13px */
     font-weight: 400;
     color: var(--color-text-light);
-    background: var(--color-cream);
-    padding: 1px 6px;
-    border-radius: var(--radius-sm);
-    margin-left: var(--space-xs);
-    vertical-align: middle;
+    margin-left: 0.5em;
+    vertical-align: baseline;
 }
 
-/* Format de bouteille (Magnum, Jéroboam, etc.) */
+/* Format de bouteille (Magnum, Jéroboam, etc.) - Style discret */
 .menu-item__format {
+    display: block;
     font-family: var(--font-body);
-    font-size: var(--size-xs);
+    font-size: 0.6875rem; /* 11px */
     font-weight: 500;
     color: var(--color-accent);
-    background: linear-gradient(135deg, rgba(var(--color-accent-rgb, 163, 130, 84), 0.15), rgba(var(--color-accent-rgb, 163, 130, 84), 0.08));
-    border: 1px solid rgba(var(--color-accent-rgb, 163, 130, 84), 0.3);
-    padding: 2px 8px;
-    border-radius: var(--radius-sm);
-    margin-left: var(--space-xs);
-    vertical-align: middle;
-    white-space: nowrap;
+    opacity: 0.85;
+    margin-top: 2px;
+    letter-spacing: 0.02em;
 }
 
+/* Domaine / Description */
 .menu-item__domain {
     display: block;
     font-family: var(--font-script);
-    font-size: var(--size-xs);
+    font-size: 0.8125rem; /* 13px */
     font-style: italic;
     color: var(--color-text-light);
     line-height: 1.4;
+    margin-top: 2px;
 }
 
-/* Amélioration de l'item de menu pour les descriptions longues */
+/* ========================================
+   ITEM DE MENU - LAYOUT PRINCIPAL
+======================================== */
+
 .menu-item {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: var(--space-md);
-    padding: var(--space-sm) 0;
+    padding: 0.625rem 0; /* 10px */
     border-bottom: 1px dashed rgba(26, 47, 42, 0.1);
 }
 
@@ -248,16 +249,17 @@
 
 .menu-item__info {
     flex: 1;
-    min-width: 0; /* Permet le text-overflow */
+    min-width: 0;
 }
 
+/* Nom du vin - Proéminent et lisible */
 .menu-item__name {
     display: block;
-    font-weight: 500;
-    font-size: var(--size-sm);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.9375rem; /* 15px */
     color: var(--color-dark);
-    margin-bottom: 2px;
-    line-height: 1.4;
+    line-height: 1.35;
 }
 
 /* ========================================
@@ -276,49 +278,94 @@
 }
 
 /* ========================================
-   RESPONSIVE PRIX
+   RESPONSIVE - TABLETTE
+======================================== */
+
+@media (max-width: 992px) {
+    .menu-item__name {
+        font-size: 0.875rem; /* 14px */
+    }
+
+    .menu-item__price {
+        font-size: 1rem; /* 16px */
+    }
+
+    .menu-item__millesime {
+        font-size: 0.75rem; /* 12px */
+    }
+
+    .menu-item__domain {
+        font-size: 0.75rem; /* 12px */
+    }
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
 ======================================== */
 
 @media (max-width: 768px) {
     .menu-item {
-        flex-direction: column;
-        gap: var(--space-sm);
+        padding: 0.5rem 0;
     }
-    
-    .menu-item__prices {
-        align-self: flex-start;
+
+    .menu-item__name {
+        font-size: 0.8125rem; /* 13px */
     }
-    
-    .menu-item__price--verre::before {
-        content: 'Verre: ';
-        font-size: inherit;
-        opacity: 1;
+
+    .menu-item__price {
+        font-size: 0.9375rem; /* 15px */
     }
-    
-    .menu-item__price--bouteille::before {
-        content: 'Bout: ';
-        font-size: var(--size-xs);
-        font-weight: 400;
-        color: var(--color-text-light);
+
+    .menu-item__price--verre {
+        font-size: 0.75rem;
+    }
+
+    .menu-item__millesime {
+        font-size: 0.6875rem; /* 11px */
+    }
+
+    .menu-item__format {
+        font-size: 0.625rem; /* 10px */
+    }
+
+    .menu-item__domain {
+        font-size: 0.6875rem; /* 11px */
     }
 }
 
+/* ========================================
+   RESPONSIVE - PETIT MOBILE
+======================================== */
+
 @media (max-width: 480px) {
+    .menu-item {
+        gap: var(--space-sm);
+    }
+
+    .menu-item__name {
+        font-size: 0.8125rem; /* 13px */
+        line-height: 1.4;
+    }
+
+    .menu-item__price {
+        font-size: 0.875rem; /* 14px */
+    }
+
     .carte-loading {
         min-height: 300px;
         padding: var(--space-2xl) var(--space-md);
     }
-    
+
     .carte-error {
         min-height: 300px;
         padding: var(--space-2xl) var(--space-md);
     }
-    
+
     .carte-error__actions {
         flex-direction: column;
         width: 100%;
     }
-    
+
     .carte-error__actions .btn {
         width: 100%;
     }
