@@ -66,9 +66,9 @@ function applyBaseConfig() {
 
     // Textes de la page
     if (CONFIG.menu && CONFIG.menu.page) {
-        setElement('menu-badge', 'textContent', CONFIG.menu.page.sousTitre || 'Petite restauration');
+        setElement('menu-badge', 'textContent', CONFIG.menu.page.sousTitre || '');
         setElement('menu-titre', 'textContent', CONFIG.menu.page.titre || 'Notre Menu');
-        setElement('menu-description', 'textContent', CONFIG.menu.page.note || 'Service de 18h30 à 23h • Prix TTC, service compris');
+        setElement('menu-description', 'textContent', CONFIG.menu.page.note || 'Prix TTC, service compris');
     }
 
     // Contact (liens sociaux)
