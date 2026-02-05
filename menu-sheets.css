@@ -222,23 +222,28 @@
 }
 
 /* ========================================
-   MENU ITEMS
+   MENU ITEMS - LAYOUT
    ======================================== */
 
 .category-items {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
+/* Container de l'item - Style épuré */
 .menu-item {
-    background: white;
-    border-radius: 12px;
-    padding: 20px 25px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-    transition: all 0.3s ease;
-    opacity: 0;
-    transform: translateY(20px);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-md, 16px);
+    padding: 0.75rem 0;
+    border-bottom: 1px dashed rgba(26, 47, 42, 0.1);
+    transition: background 0.2s ease;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
 }
 
 .menu-item.visible {
@@ -247,10 +252,58 @@
 }
 
 .menu-item:hover {
-    box-shadow: 0 5px 25px rgba(0,0,0,0.08);
-    transform: translateY(-3px);
+    background: rgba(26, 47, 42, 0.02);
 }
 
+/* Container des infos */
+.menu-item__info {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Nom du plat - Proéminent */
+.menu-item__name {
+    display: block;
+    font-family: var(--font-display, 'Playfair Display', serif);
+    font-weight: 600;
+    font-size: 1rem; /* 16px */
+    color: var(--color-dark, #1a2f2a);
+    line-height: 1.35;
+    margin-bottom: 4px;
+}
+
+/* Prix - Visible et élégant */
+.menu-item__price {
+    font-family: var(--font-display, 'Playfair Display', serif);
+    font-size: 1.125rem; /* 18px */
+    font-weight: 600;
+    color: var(--color-accent, #c67341);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Description du plat */
+.menu-item__domain {
+    display: block;
+    font-family: var(--font-script, 'Cormorant Garamond', serif);
+    font-size: 0.875rem; /* 14px */
+    font-style: italic;
+    color: var(--color-text-light, #6b7b76);
+    line-height: 1.5;
+    margin-top: 2px;
+}
+
+/* Temps de préparation (utilise la classe millesime) */
+.menu-item__millesime {
+    font-family: var(--font-body, 'Poppins', sans-serif);
+    font-size: 0.75rem; /* 12px */
+    font-weight: 400;
+    color: var(--color-text-light, #6b7b76);
+    margin-left: 0.5em;
+    vertical-align: baseline;
+}
+
+/* Ancien style card (rétrocompatibilité) */
 .item-content {
     display: flex;
     flex-direction: column;
@@ -265,26 +318,26 @@
 }
 
 .item-name {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.3rem;
+    font-family: var(--font-display, 'Playfair Display', serif);
+    font-size: 1rem;
     font-weight: 600;
-    color: var(--color-primary, #2c1810);
+    color: var(--color-dark, #1a2f2a);
     margin: 0;
     flex: 1;
 }
 
 .item-price {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1.1rem;
+    font-family: var(--font-display, 'Playfair Display', serif);
+    font-size: 1.125rem;
     font-weight: 600;
-    color: var(--color-accent, #d4a574);
+    color: var(--color-accent, #c67341);
     white-space: nowrap;
 }
 
 .item-description {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.9rem;
-    color: #666;
+    font-family: var(--font-script, 'Cormorant Garamond', serif);
+    font-size: 0.875rem;
+    color: var(--color-text-light, #6b7b76);
     margin: 0;
     line-height: 1.5;
     font-style: italic;
@@ -294,100 +347,157 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-family: 'Montserrat', sans-serif;
-    font-size: 0.8rem;
-    color: var(--color-accent, #d4a574);
-    background: rgba(212, 165, 116, 0.1);
-    padding: 5px 12px;
-    border-radius: 15px;
-    width: fit-content;
+    font-family: var(--font-body, 'Poppins', sans-serif);
+    font-size: 0.75rem;
+    color: var(--color-accent, #c67341);
+    opacity: 0.85;
 }
 
 /* Empty state */
 .menu-empty {
     text-align: center;
     padding: 60px 20px;
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-body, 'Poppins', sans-serif);
     color: #999;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 /* ========================================
-   RESPONSIVE
+   RESPONSIVE - TABLETTE
+   ======================================== */
+
+@media (max-width: 992px) {
+    .menu-item__name {
+        font-size: 0.9375rem; /* 15px */
+    }
+
+    .menu-item__price {
+        font-size: 1rem; /* 16px */
+    }
+
+    .menu-item__domain {
+        font-size: 0.8125rem; /* 13px */
+    }
+}
+
+/* ========================================
+   RESPONSIVE - MOBILE
    ======================================== */
 
 @media (max-width: 768px) {
     .menu-hero {
         padding: 100px 15px 50px;
     }
-    
+
     .menu-hero h1 {
         font-size: 2.5rem;
         flex-direction: column;
         gap: 10px;
     }
-    
+
     .menu-icon {
         font-size: 2rem;
     }
-    
+
     .menu-subtitle {
         font-size: 1rem;
     }
-    
+
     .menu-filters {
         padding: 15px;
         gap: 8px;
     }
-    
+
     .filter-btn {
         padding: 10px 18px;
         font-size: 0.85rem;
     }
-    
+
     .category-header h2 {
         font-size: 1.6rem;
     }
-    
+
     .category-hours {
         font-size: 0.75rem;
         padding: 5px 12px;
     }
-    
+
+    /* Menu items responsive */
     .menu-item {
-        padding: 18px 20px;
+        padding: 0.625rem 0;
     }
-    
+
+    .menu-item__name {
+        font-size: 0.875rem; /* 14px */
+    }
+
+    .menu-item__price {
+        font-size: 0.9375rem; /* 15px */
+    }
+
+    .menu-item__domain {
+        font-size: 0.75rem; /* 12px */
+    }
+
+    .menu-item__millesime {
+        font-size: 0.6875rem; /* 11px */
+    }
+
     .item-header {
         flex-direction: column;
         gap: 8px;
     }
-    
+
     .item-name {
-        font-size: 1.15rem;
+        font-size: 0.875rem;
     }
-    
+
     .item-price {
-        font-size: 1rem;
+        font-size: 0.9375rem;
+    }
+
+    .item-description {
+        font-size: 0.75rem;
     }
 }
+
+/* ========================================
+   RESPONSIVE - PETIT MOBILE
+   ======================================== */
 
 @media (max-width: 480px) {
     .menu-hero h1 {
         font-size: 2rem;
     }
-    
+
     .menu-filters {
         flex-direction: column;
     }
-    
+
     .filter-btn {
         width: 100%;
         text-align: center;
     }
-    
+
     .category-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .menu-item {
+        gap: var(--space-sm, 8px);
+    }
+
+    .menu-item__name {
+        font-size: 0.8125rem; /* 13px */
+        line-height: 1.4;
+    }
+
+    .menu-item__price {
+        font-size: 0.875rem; /* 14px */
+    }
+
+    .menu-item__domain {
+        font-size: 0.6875rem; /* 11px */
     }
 }
