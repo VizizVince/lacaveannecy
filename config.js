@@ -202,7 +202,9 @@ const CONFIG = {
         page: {
             badge: "Plus de 400 références",
             titre: "La Carte des Vins",
-            description: "Une sélection pointue de vins naturels et de vignerons passionnés, organisée par région pour faciliter votre découverte."
+            description: "Une sélection pointue de vins naturels et de vignerons passionnés, organisée par région pour faciliter votre découverte.",
+            // Description affichée uniquement en mode fallback (quand Google Sheets est indisponible)
+            fallbackDescription: "La Carte des Vins n'est actuellement pas complète sur notre site web. Retrouvez notre sélection complète directement à La Cave."
         },
 
         // Footer de la carte
@@ -214,50 +216,401 @@ const CONFIG = {
         // ═══════════════════════════════════════════════════════════════════
         // FALLBACK: Données statiques (utilisées si Google Sheets échoue)
         // Ces données ne seront utilisées qu'en cas d'erreur de chargement
+        // Environ 100 vins représentatifs de La Bible
         // ═══════════════════════════════════════════════════════════════════
-        
+
         regions: [
             {
                 id: "bulles",
                 nom: "Les Bulles",
                 emoji: "✨",
-                sousTitre: "Champagnes, Crémants & Pétillants naturels",
+                sousTitre: "Crémants & Pétillants naturels",
                 categories: [
                     {
-                        nom: "Champagne",
+                        nom: "France",
                         vins: [
-                            { nom: "Grande Réserve, Brut NM", domaine: "Domaine Dehours", prix: "72 €" },
-                            { nom: "Bouzy Grand Cru, Les Parcelles", domaine: "Pierre Paillard", prix: "74 €" },
-                            { nom: "Fosse Grély, Brut Nature 2017", domaine: "Ruppert Leroy", prix: "92 €" }
+                            { nom: "Petnat", domaine: "Pépin (Alsace)", prix: "35 €" },
+                            { nom: "Brut Alpin", domaine: "Domaine Blard & Fils (Savoie)", prix: "47 €" },
+                            { nom: "Grand Brut Alpin 2017", domaine: "Domaine Blard & Fils (Savoie)", prix: "65 €" },
+                            { nom: "Brut Nature - Blanc De Noirs 2020", domaine: "Domaine De Chevillard (Savoie)", prix: "79 €" },
+                            { nom: "Brut - Atmosphères", domaine: "Jo Landron (Loire)", prix: "39 €" },
+                            { nom: "Triple Zero", domaine: "Domaine De La Butte - Jacky Blot (Loire)", prix: "52 €" }
                         ]
                     },
                     {
-                        nom: "Crémants & Pétillants",
+                        nom: "Italie",
                         vins: [
-                            { nom: "Crémant du Jura 2018", domaine: "Guillaume Overnoy", prix: "40 €" },
-                            { nom: "Crémant de Bourgogne, Cuvée Z 2020", domaine: "Le Domaine d'Édouard", prix: "43 €" }
+                            { nom: "Prosecco Treviso - Extra Dry", domaine: "Ville Arfanta (Vénétie)", prix: "30 €" }
                         ]
                     }
                 ]
             },
             {
-                id: "savoie",
-                nom: "Savoie",
-                emoji: "⛰️",
-                sousTitre: "Vins des Alpes • Jacquère, Roussette, Mondeuse",
+                id: "champagnes",
+                nom: "Les Champagnes",
+                emoji: "🥂",
+                sousTitre: "Grandes maisons & vignerons indépendants",
                 categories: [
                     {
-                        nom: "Blancs",
+                        nom: "Montagne De Reims",
                         vins: [
-                            { nom: "IGP Allobroges, Quartz 2022", domaine: "Domaine des Ardoisières", prix: "165 €" },
-                            { nom: "Roussette de Savoie 2020", domaine: "Domaine du Chevillard", prix: "65 €" }
+                            { nom: "Black Label", domaine: "Lanson", prix: "79 €" },
+                            { nom: "Grand Cru Bouzy - Extra Brut - Les Parcelles", domaine: "Pierre Paillard", prix: "89 €" },
+                            { nom: "Brut Réserve", domaine: "Charles Heidsieck", prix: "92 €" },
+                            { nom: "Brut", domaine: "Bruno Paillard", prix: "97 €" },
+                            { nom: "Brut Nature 2015", domaine: "Louis Roederer", prix: "149 €" },
+                            { nom: "P1 2015", domaine: "Dom Pérignon", prix: "329 €" }
                         ]
                     },
                     {
-                        nom: "Rouges",
+                        nom: "Vallée De La Marne",
                         vins: [
-                            { nom: "IGP Allobroges, Améthyste 2018", domaine: "Domaine des Ardoisières", prix: "113 €" },
-                            { nom: "Coteau de la Mort 2021", domaine: "Domaine des Côtes Rousses", prix: "64 €" }
+                            { nom: "Rosé", domaine: "Lallier", prix: "75 €" },
+                            { nom: "Brut - La Cuvée", domaine: "Laurent-Perrier", prix: "89 €" },
+                            { nom: "Brut - Spécial Cuvée", domaine: "Bollinger", prix: "108 €" },
+                            { nom: "Brut - Cuvée Rosé", domaine: "Laurent-Perrier", prix: "149 €" },
+                            { nom: "Grand Siècle - N°25", domaine: "Laurent-Perrier", prix: "295 €" }
+                        ]
+                    },
+                    {
+                        nom: "Côte Des Blancs",
+                        vins: [
+                            { nom: "Brut - Origine", domaine: "A. Bergère", prix: "75 €" },
+                            { nom: "Brut - Blanc De Blancs", domaine: "Delamotte", prix: "109 €" },
+                            { nom: "Grand Cru - Brut - Initial - Blanc De Blancs", domaine: "Jacques Selosse", prix: "358 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "blancs-savoie",
+                nom: "Vins Blancs - Savoie",
+                emoji: "⛰️",
+                sousTitre: "Jacquère, Roussette, Altesse & cépages alpins",
+                categories: [
+                    {
+                        nom: "Roussette De Savoie",
+                        vins: [
+                            { nom: "Roussette 2024", domaine: "Domaine Blard & Fils", prix: "35 €" },
+                            { nom: "Une Altesse Pour L'empereur 2023", domaine: "Domaine Des Albatros", prix: "59 €" },
+                            { nom: "Susie 2024", domaine: "Domaine Gilles Berlioz", prix: "59 €" },
+                            { nom: "Résonance 2024", domaine: "Domaine Des Orchis", prix: "59 €" },
+                            { nom: "Roussette 2022", domaine: "Domaine De Chevillard", prix: "76 €" }
+                        ]
+                    },
+                    {
+                        nom: "Vin De Savoie",
+                        vins: [
+                            { nom: "La Brive 2023", domaine: "Maison Bonnard Et Fils", prix: "30 €" },
+                            { nom: "Jacquère 2022", domaine: "Domaine De Chevillard", prix: "45 €" },
+                            { nom: "Giant Step 2023", domaine: "Domaine Ludovic Archer", prix: "59 €" },
+                            { nom: "Eponyme 2020", domaine: "Domaine Belluard", prix: "95 €" },
+                            { nom: "Le Feu 2019", domaine: "Domaine Belluard", prix: "129 €" }
+                        ]
+                    },
+                    {
+                        nom: "Vin Des Allobroges",
+                        vins: [
+                            { nom: "Silice Blanc 2024", domaine: "Maison Des Ardoisières", prix: "35 €" },
+                            { nom: "Argile Blanc 2024", domaine: "Domaine Des Ardoisières", prix: "45 €" },
+                            { nom: "Schiste 2023", domaine: "Domaine Des Ardoisières", prix: "85 €" },
+                            { nom: "Quartz 2022", domaine: "Domaine Des Ardoisières", prix: "169 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "blancs-bourgogne",
+                nom: "Vins Blancs - Bourgogne",
+                emoji: "🍇",
+                sousTitre: "Chardonnay, Aligoté & grands terroirs",
+                categories: [
+                    {
+                        nom: "Bourgogne",
+                        vins: [
+                            { nom: "Nobles Terroirs - Vieilles Vignes 2023", domaine: "Domaine Rijckaert", prix: "48 €" },
+                            { nom: "Bourgogne 2021", domaine: "Domaine Fanny Sabre", prix: "59 €" },
+                            { nom: "Le Clos Du Château 2022", domaine: "Domaine De Montille", prix: "63 €" },
+                            { nom: "Les Chataigners 2022", domaine: "Domaine Hubert Lamy", prix: "85 €" }
+                        ]
+                    },
+                    {
+                        nom: "Chablis",
+                        vins: [
+                            { nom: "Chablis 2023", domaine: "Domaine Louis Michel Et Fils", prix: "59 €" },
+                            { nom: "Vent D'ange - Mise Tardive 2020", domaine: "Domaine Pattes Loup", prix: "84 €" },
+                            { nom: "Chablis 2022", domaine: "Domaine Vincent Dauvissat", prix: "119 €" }
+                        ]
+                    },
+                    {
+                        nom: "Côte De Beaune",
+                        vins: [
+                            { nom: "Meursault - Cuvée Saint Jean 2021", domaine: "Vincent Latour", prix: "127 €" },
+                            { nom: "Meursault - Clos Du Murger 2022", domaine: "Domaine Albert Grivault", prix: "149 €" },
+                            { nom: "Puligny-Montrachet 2022", domaine: "Domaine Etienne Sauzet", prix: "148 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "blancs-loire",
+                nom: "Vins Blancs - Loire",
+                emoji: "🏰",
+                sousTitre: "Chenin, Sauvignon & Muscadet",
+                categories: [
+                    {
+                        nom: "Anjou & Saumur",
+                        vins: [
+                            { nom: "Les Petites Rochettes 2022", domaine: "Château Du Breuil", prix: "29 €" },
+                            { nom: "Anjou Blanc 2023", domaine: "Domaine Thibaud Boudignon", prix: "59 €" },
+                            { nom: "Saumur 2024", domaine: "Domaine Guiberteau", prix: "49 €" },
+                            { nom: "Brézé 2022", domaine: "Domaine Guiberteau", prix: "129 €" }
+                        ]
+                    },
+                    {
+                        nom: "Sancerre & Centre",
+                        vins: [
+                            { nom: "Sancerre 2024", domaine: "Domaine Vacheron", prix: "65 €" },
+                            { nom: "Les Caillottes 2022", domaine: "François Cotat", prix: "75 €" },
+                            { nom: "Les Monts Damnés 2022", domaine: "François Cotat", prix: "102 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "blancs-rhone",
+                nom: "Vins Blancs - Rhône",
+                emoji: "☀️",
+                sousTitre: "Viognier, Marsanne & Roussanne",
+                categories: [
+                    {
+                        nom: "Rhône Nord",
+                        vins: [
+                            { nom: "Condrieu 2023", domaine: "Domaine Louis Chèze", prix: "79 €" },
+                            { nom: "Condrieu - Les Terrasses De L'empire 2023", domaine: "Domaine Georges Vernay", prix: "109 €" },
+                            { nom: "Saint-Joseph - Les Oliviers 2022", domaine: "Domaine Pierre Gonon", prix: "139 €" },
+                            { nom: "Hermitage - Les Rocoules 2023", domaine: "Domaine Marc Sorrel", prix: "399 €" }
+                        ]
+                    },
+                    {
+                        nom: "Rhône Sud",
+                        vins: [
+                            { nom: "Cairanne 2024", domaine: "Domaine Marcel Richaud", prix: "49 €" },
+                            { nom: "Châteauneuf-du-Pape 2018", domaine: "Château De Vaudieu", prix: "68 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "roses",
+                nom: "Vins Rosés",
+                emoji: "🌸",
+                sousTitre: "Provence, Rhône & autres régions",
+                categories: [
+                    {
+                        nom: "Provence",
+                        vins: [
+                            { nom: "Le Clocher 2024", domaine: "Vignerons De La Presqu'île De Saint Tropez", prix: "33 €" },
+                            { nom: "Mip 2024", domaine: "Domaine Des Diables", prix: "37 €" },
+                            { nom: "Château La Rouvière 2024", domaine: "Domaine Bunan (Bandol)", prix: "49 €" },
+                            { nom: "Château De Selle 2024", domaine: "Domaines Ott", prix: "59 €" }
+                        ]
+                    },
+                    {
+                        nom: "Autres Régions",
+                        vins: [
+                            { nom: "Rosé 2024", domaine: "Domaine De Fondrèche (Ventoux)", prix: "35 €" },
+                            { nom: "Rose-Marie 2021", domaine: "Château Le Puy (Bordeaux)", prix: "89 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "rouges-savoie",
+                nom: "Vins Rouges - Savoie",
+                emoji: "⛰️",
+                sousTitre: "Mondeuse & cépages alpins",
+                categories: [
+                    {
+                        nom: "Vin De Savoie",
+                        vins: [
+                            { nom: "Mondeuse 2024", domaine: "Domaine Jean Vullien & Fils", prix: "30 €" },
+                            { nom: "La Nuit Nous Appartient 2023", domaine: "Domaine Des 13 Lunes", prix: "35 €" },
+                            { nom: "Mondeuse - Noir Des Reines 2021", domaine: "Florent Héritier", prix: "45 €" },
+                            { nom: "Mondeuse 2022", domaine: "Domaine De Chevillard", prix: "59 €" },
+                            { nom: "Mondeuse 2020", domaine: "Domaine Belluard", prix: "107 €" }
+                        ]
+                    },
+                    {
+                        nom: "Vin De Savoie Arbin",
+                        vins: [
+                            { nom: "L'apex Et Les Epaules 2023", domaine: "Domaine Ludovic Archer", prix: "54 €" },
+                            { nom: "Harmonie 2023", domaine: "Les Fils De Charles Trosset", prix: "59 €" },
+                            { nom: "La Brova 2015", domaine: "Domaine Louis Magnin", prix: "71 €" }
+                        ]
+                    },
+                    {
+                        nom: "Vin Des Allobroges",
+                        vins: [
+                            { nom: "Silice Rouge 2024", domaine: "Maison Des Ardoisières", prix: "35 €" },
+                            { nom: "Argile Rouge 2024", domaine: "Domaine Des Ardoisières", prix: "55 €" },
+                            { nom: "Dark Side 2022", domaine: "Domaine L'aitonnement", prix: "89 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "rouges-bourgogne",
+                nom: "Vins Rouges - Bourgogne",
+                emoji: "🍇",
+                sousTitre: "Pinot Noir des plus beaux terroirs",
+                categories: [
+                    {
+                        nom: "Bourgogne",
+                        vins: [
+                            { nom: "Pinot Noir 2023", domaine: "Domaine Deliance", prix: "39 €" },
+                            { nom: "Bourgogne 2023", domaine: "Domaine Henri & Gilles Buisson", prix: "49 €" },
+                            { nom: "Pinot Noir 2022", domaine: "Domaine Fanny Sabre", prix: "69 €" },
+                            { nom: "Pinot Noir 2023", domaine: "Domaine Jean-claude Ramonet", prix: "99 €" }
+                        ]
+                    },
+                    {
+                        nom: "Côte De Beaune",
+                        vins: [
+                            { nom: "Chassagne-Montrachet 2022", domaine: "Domaine Fontaine-Gagnard", prix: "89 €" },
+                            { nom: "Pommard - Perrières 2022", domaine: "Domaine Sébastien Magnien", prix: "94 €" },
+                            { nom: "Volnay 2021", domaine: "Pierrick Bouley", prix: "129 €" }
+                        ]
+                    },
+                    {
+                        nom: "Côte De Nuits",
+                        vins: [
+                            { nom: "Fixin 2022", domaine: "Domaine Berthaut-Gerbet", prix: "69 €" },
+                            { nom: "Gevrey-Chambertin 2022", domaine: "Domaine Trapet", prix: "118 €" },
+                            { nom: "Chambolle-Musigny 2021", domaine: "Domaine Jean-Marie Fourrier", prix: "159 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "rouges-rhone",
+                nom: "Vins Rouges - Rhône",
+                emoji: "☀️",
+                sousTitre: "Syrah du Nord, Grenache du Sud",
+                categories: [
+                    {
+                        nom: "Rhône Nord",
+                        vins: [
+                            { nom: "Collines Rhodaniennes - L'appel Des Sereines 2022", domaine: "Domaine François Villard", prix: "30 €" },
+                            { nom: "Crozes-Hermitage - Equinoxe 2023", domaine: "Equis", prix: "36 €" },
+                            { nom: "Saint-Joseph 2023", domaine: "Domaine Bernard Gripa", prix: "69 €" },
+                            { nom: "Côte-Rôtie - Champon's 2020", domaine: "Domaine Pichat", prix: "99 €" },
+                            { nom: "Hermitage 2023", domaine: "Domaine Marc Sorrel", prix: "249 €" }
+                        ]
+                    },
+                    {
+                        nom: "Rhône Sud",
+                        vins: [
+                            { nom: "Côtes-du-Rhône 2021", domaine: "Clos St Antonin", prix: "28 €" },
+                            { nom: "Cairanne 2024", domaine: "Domaine Marcel Richaud", prix: "45 €" },
+                            { nom: "Châteauneuf-du-Pape - Tradition 2019", domaine: "Domaine Jean Royer", prix: "78 €" },
+                            { nom: "Châteauneuf-du-Pape - La Crau 2020", domaine: "Domaine Du Vieux Télégraphe", prix: "129 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "rouges-beaujolais",
+                nom: "Vins Rouges - Beaujolais",
+                emoji: "🍒",
+                sousTitre: "Gamay des crus & villages",
+                categories: [
+                    {
+                        nom: "Beaujolais & Villages",
+                        vins: [
+                            { nom: "Raisins Gaulois 2023", domaine: "Domaine Marcel Lapierre", prix: "29 €" },
+                            { nom: "La Demarrante 2023", domaine: "Domaine Dupré Goujon", prix: "30 €" },
+                            { nom: "Terroir De Bellevue 2022", domaine: "Domaine Saint-Cyr", prix: "46 €" }
+                        ]
+                    },
+                    {
+                        nom: "Crus du Beaujolais",
+                        vins: [
+                            { nom: "Morgon 2020", domaine: "Domaine Jean Foillard", prix: "46 €" },
+                            { nom: "Fleurie - Coup D' Folie 2023", domaine: "Les Bertrands - Yann Bertrand", prix: "59 €" },
+                            { nom: "Morgon - Côte Du Py 2021", domaine: "Domaine Jean Foillard", prix: "76 €" },
+                            { nom: "Moulin-à-Vent 2020", domaine: "Domaine Yvon Métras", prix: "99 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "rouges-bordeaux",
+                nom: "Vins Rouges - Bordeaux",
+                emoji: "🏛️",
+                sousTitre: "Grands crus & appellations",
+                categories: [
+                    {
+                        nom: "Bordeaux & Côtes",
+                        vins: [
+                            { nom: "Bordeaux 2022", domaine: "Château Tour Le Pin", prix: "30 €" },
+                            { nom: "Les Argileuses 2022", domaine: "Château Le Rey (Castillon)", prix: "42 €" },
+                            { nom: "Emilien 2020", domaine: "Château Le Puy", prix: "69 €" },
+                            { nom: "Roc De Cambes 2018", domaine: "Roc De Cambes (Côtes-de-Bourg)", prix: "159 €" }
+                        ]
+                    },
+                    {
+                        nom: "Médoc & Saint-Emilion",
+                        vins: [
+                            { nom: "Margaux De Brane 2015", domaine: "Château Brane-Cantenac", prix: "59 €" },
+                            { nom: "Pauillac De Latour 2019", domaine: "Château Latour", prix: "155 €" },
+                            { nom: "Saint-Emilion Grand Cru 2018", domaine: "Chateau Des Bardes", prix: "39 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "cidre-poire",
+                nom: "Cidre & Poiré",
+                emoji: "🍏",
+                sousTitre: "Normandie & autres terroirs",
+                categories: [
+                    {
+                        nom: "Eric Bordelet",
+                        vins: [
+                            { nom: "Sidre - Brut", domaine: "Eric Bordelet", prix: "26 €" },
+                            { nom: "Poiré - Authentique", domaine: "Eric Bordelet", prix: "30 €" }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: "vins-monde",
+                nom: "Vins du Monde",
+                emoji: "🌍",
+                sousTitre: "Italie, Espagne, Suisse & autres pays",
+                categories: [
+                    {
+                        nom: "Italie",
+                        vins: [
+                            { nom: "Toscana - Eliseo Rosso 2019", domaine: "Gualdo Del Re", prix: "33 €" },
+                            { nom: "Barolo 2015", domaine: "Marcarini", prix: "99 €" },
+                            { nom: "Amarone Della Valpolicella 2018", domaine: "Masi", prix: "119 €" }
+                        ]
+                    },
+                    {
+                        nom: "Espagne",
+                        vins: [
+                            { nom: "Rioja - Vina Real 2018", domaine: "La Compañía Vinícola Del Norte De España", prix: "27 €" },
+                            { nom: "Ribera Del Duero - Flor De Pingus 2017", domaine: "Dominio De Pingus", prix: "198 €" }
+                        ]
+                    },
+                    {
+                        nom: "Suisse",
+                        vins: [
+                            { nom: "Valais - Fendant 2021", domaine: "Château Constellation", prix: "66 €" },
+                            { nom: "Valais - Petite Arvine 2021", domaine: "Château Constellation", prix: "86 €" },
+                            { nom: "Valais - Assemblage 2021", domaine: "Domaine Marie-Thérèse Chappaz", prix: "169 €" }
                         ]
                     }
                 ]

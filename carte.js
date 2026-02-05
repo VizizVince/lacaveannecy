@@ -599,7 +599,7 @@ function renderErrorState(container, message) {
  */
 function renderMenuFromConfig() {
     if (!CONFIG.carte || !CONFIG.carte.regions) return;
-    
+
     // Convertir le format config.js vers le format SheetsLoader
     const categories = CONFIG.carte.regions.map(region => ({
         nom: region.nom,
@@ -616,20 +616,18 @@ function renderMenuFromConfig() {
             return acc;
         }, {})
     }));
-    
+
     CarteState.categories = categories;
     generateFilters(categories);
     renderMenu(categories);
-    
-    // Afficher un avertissement
-    const container = document.getElementById('menu-container');
-    const warning = document.createElement('div');
-    warning.className = 'carte-warning';
-    warning.innerHTML = `
-        <p>⚠️ Carte chargée depuis la configuration locale. 
-        La connexion Google Sheets a échoué.</p>
-    `;
-    container.insertBefore(warning, container.firstChild);
+
+    // En mode fallback, afficher la description spécifique
+    if (CONFIG.carte.page && CONFIG.carte.page.fallbackDescription) {
+        setElement('carte-description', 'textContent', CONFIG.carte.page.fallbackDescription);
+    }
+
+    // Afficher un avertissement discret (pour les développeurs)
+    console.warn('[Carte] Mode fallback actif - données locales utilisées');
 }
 
 /**
