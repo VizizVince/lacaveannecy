@@ -261,7 +261,10 @@ function renderMenu(categories) {
         const safeId = escapeHtml(id);
         const safeEmoji = sanitizeEmoji(cat.emoji);
         const safeName = escapeHtml(cat.nom);
-        const safeSubtitle = escapeHtml(generateSubtitle(cat));
+
+        // Compter le nombre de sous-catégories (hors "Général")
+        const subcatCount = Object.keys(cat.sousCategories).filter(k => k !== 'Général').length;
+        const showExpandBtn = subcatCount > 0;
 
         html += `
             <section class="menu-section scroll-reveal menu-section--collapsible-mode" data-category="${safeId}" id="${safeId}">
@@ -269,7 +272,6 @@ function renderMenu(categories) {
                     <div class="menu-section__icon">${safeEmoji}</div>
                     <div class="menu-section__header-content">
                         <h2 class="menu-section__title">${safeName}</h2>
-                        <p class="menu-section__subtitle">${safeSubtitle}</p>
                     </div>
                     <div class="menu-section__toggle">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -278,8 +280,21 @@ function renderMenu(categories) {
                     </div>
                 </div>
 
-                <div class="menu-columns menu-section__content">
-                    ${renderSousCategories(cat.sousCategories)}
+                <div class="menu-section__content">
+                    ${showExpandBtn ? `
+                    <div class="menu-section__controls">
+                        <button class="menu-section__expand-btn" data-expand-all="${safeId}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="7 13 12 18 17 13"></polyline>
+                                <polyline points="7 6 12 11 17 6"></polyline>
+                            </svg>
+                            <span>Tout déplier</span>
+                        </button>
+                    </div>
+                    ` : ''}
+                    <div class="menu-columns">
+                        ${renderSousCategories(cat.sousCategories)}
+                    </div>
                 </div>
             </section>
         `;
@@ -287,8 +302,14 @@ function renderMenu(categories) {
 
     container.innerHTML = html;
 
-    // Ajouter les événements de clic pour le dépliage (seulement si filtre "all")
+    // Ajouter les événements de clic pour le dépliage des catégories principales
     setupCollapsibleEvents();
+
+    // Ajouter les événements de clic pour le dépliage des sous-catégories
+    setupSubcategoryToggleEvents();
+
+    // Ajouter les événements pour les boutons "Tout déplier/Replier"
+    setupExpandAllButtons();
 
     // Déclencher les animations
     setTimeout(() => {
@@ -298,6 +319,89 @@ function renderMenu(categories) {
             }, i * 100);
         });
     }, 100);
+}
+
+/**
+ * Configure les événements de toggle pour les sous-catégories
+ */
+function setupSubcategoryToggleEvents() {
+    const headers = document.querySelectorAll('.menu-category__header');
+
+    headers.forEach(header => {
+        header.addEventListener('click', function(e) {
+            e.stopPropagation(); // Empêcher la propagation vers le parent
+
+            const category = header.closest('.menu-category');
+            if (!category) return;
+
+            category.classList.toggle('menu-category--collapsed');
+
+            // Mettre à jour le bouton "Tout déplier" de la section parente
+            updateExpandButtonState(category.closest('.menu-section'));
+        });
+    });
+}
+
+/**
+ * Configure les boutons "Tout déplier/Replier"
+ */
+function setupExpandAllButtons() {
+    const buttons = document.querySelectorAll('.menu-section__expand-btn');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+
+            const sectionId = btn.dataset.expandAll;
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+
+            const categories = section.querySelectorAll('.menu-category:not(.menu-category--general)');
+            const allExpanded = Array.from(categories).every(cat => !cat.classList.contains('menu-category--collapsed'));
+
+            // Basculer l'état de toutes les sous-catégories
+            categories.forEach(cat => {
+                if (allExpanded) {
+                    cat.classList.add('menu-category--collapsed');
+                } else {
+                    cat.classList.remove('menu-category--collapsed');
+                }
+            });
+
+            // Mettre à jour le texte du bouton
+            updateExpandButtonState(section);
+        });
+    });
+}
+
+/**
+ * Met à jour l'état du bouton "Tout déplier/Replier"
+ */
+function updateExpandButtonState(section) {
+    if (!section) return;
+
+    const btn = section.querySelector('.menu-section__expand-btn');
+    if (!btn) return;
+
+    const categories = section.querySelectorAll('.menu-category:not(.menu-category--general)');
+    const allExpanded = Array.from(categories).every(cat => !cat.classList.contains('menu-category--collapsed'));
+
+    const textSpan = btn.querySelector('span');
+    const svgIcon = btn.querySelector('svg');
+
+    if (allExpanded) {
+        textSpan.textContent = 'Tout replier';
+        svgIcon.innerHTML = `
+            <polyline points="7 11 12 6 17 11"></polyline>
+            <polyline points="7 18 12 13 17 18"></polyline>
+        `;
+    } else {
+        textSpan.textContent = 'Tout déplier';
+        svgIcon.innerHTML = `
+            <polyline points="7 13 12 18 17 13"></polyline>
+            <polyline points="7 6 12 11 17 6"></polyline>
+        `;
+    }
 }
 
 /**
@@ -320,28 +424,58 @@ function setupCollapsibleEvents() {
 }
 
 /**
- * Génère le sous-titre d'une catégorie (liste des sous-catégories)
+ * Génère le sous-titre d'une catégorie
+ * Note: Le sous-titre a été retiré pour alléger l'interface
  */
 function generateSubtitle(category) {
-    const sousCats = Object.keys(category.sousCategories);
-    if (sousCats.length === 1 && sousCats[0] === 'Général') {
-        return '';
-    }
-    return sousCats.filter(s => s !== 'Général').join(' • ');
+    return '';
 }
 
 /**
- * Génère le HTML des sous-catégories
+ * Génère le HTML des sous-catégories avec toggle expand/collapse
  */
 function renderSousCategories(sousCategories) {
-    return Object.entries(sousCategories).map(([nom, vins]) => `
-        <div class="menu-category">
-            ${nom !== 'Général' ? `<h3 class="menu-category__title">${escapeHtml(nom)}</h3>` : ''}
-            <div class="menu-items">
-                ${renderVins(vins)}
+    return Object.entries(sousCategories).map(([nom, vins]) => {
+        const isGeneral = nom === 'Général';
+        const safeNom = escapeHtml(nom);
+        const count = vins.length;
+        const categoryId = slugify(nom);
+
+        // Pour "Général", pas de header cliquable
+        if (isGeneral) {
+            return `
+                <div class="menu-category menu-category--general">
+                    <div class="menu-category__content">
+                        <div class="menu-category__items menu-items">
+                            ${renderVins(vins)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Sous-catégorie avec header toggle (repliée par défaut)
+        return `
+            <div class="menu-category menu-category--collapsed" data-subcategory="${categoryId}">
+                <div class="menu-category__header" data-toggle="${categoryId}">
+                    <h3 class="menu-category__title">
+                        ${safeNom}
+                        <span class="menu-category__count">(${count})</span>
+                    </h3>
+                    <div class="menu-category__toggle">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                </div>
+                <div class="menu-category__content">
+                    <div class="menu-category__items menu-items">
+                        ${renderVins(vins)}
+                    </div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 /**

@@ -1673,28 +1673,104 @@ a {
     cursor: default;
 }
 
-/* Menu Columns */
+/* Menu Columns - Layout en grille simple */
 .menu-columns {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: var(--space-2xl);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
 }
 
-/* Menu Category */
+/* Menu Category - Sous-catégorie avec toggle */
 .menu-category {
-    padding: var(--space-lg);
+    padding: 0;
     background: var(--color-cream);
     border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* Header de sous-catégorie cliquable */
+.menu-category__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--color-cream);
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    user-select: none;
+}
+
+.menu-category__header:hover {
+    background: rgba(26, 47, 42, 0.05);
 }
 
 .menu-category__title {
     font-family: var(--font-display);
-    font-size: var(--size-lg);
+    font-size: var(--size-base);
     font-weight: 600;
     color: var(--color-primary);
-    margin-bottom: var(--space-md);
-    padding-bottom: var(--space-sm);
-    border-bottom: 1px solid rgba(26, 47, 42, 0.1);
+    margin: 0;
+    flex: 1;
+}
+
+.menu-category__count {
+    font-family: var(--font-body);
+    font-size: var(--size-xs);
+    font-weight: 400;
+    color: var(--color-text-light);
+    margin-left: var(--space-sm);
+}
+
+.menu-category__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--color-text-light);
+    transition: transform var(--transition-base), color var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.menu-category__toggle svg {
+    width: 18px;
+    height: 18px;
+    transition: transform var(--transition-base);
+}
+
+.menu-category__header:hover .menu-category__toggle {
+    color: var(--color-accent);
+}
+
+/* Contenu des vins */
+.menu-category__content {
+    max-height: 2000px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    opacity: 1;
+}
+
+.menu-category__items {
+    padding: 0 var(--space-lg) var(--space-lg);
+}
+
+/* État replié de la sous-catégorie */
+.menu-category--collapsed .menu-category__toggle svg {
+    transform: rotate(-90deg);
+}
+
+.menu-category--collapsed .menu-category__content {
+    max-height: 0;
+    opacity: 0;
+}
+
+/* Sous-catégorie "Général" sans header (pas de toggle) */
+.menu-category--general {
+    background: transparent;
+}
+
+.menu-category--general .menu-category__items {
+    padding: var(--space-md) 0;
 }
 
 /* Menu Items */
@@ -1788,7 +1864,7 @@ a {
     }
     
     .menu-columns {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
     
     .agenda-grid {
@@ -2098,10 +2174,23 @@ a {
         height: 50px;
     }
 
-    .menu-category {
-        padding: var(--space-md);
+    /* Layout 1 colonne sur mobile */
+    .menu-columns {
+        grid-template-columns: 1fr;
     }
-    
+
+    .menu-category__header {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .menu-category__items {
+        padding: 0 var(--space-md) var(--space-md);
+    }
+
+    .menu-category__title {
+        font-size: var(--size-sm);
+    }
+
     /* Agenda Mobile */
     .event-card {
         flex-direction: column;
