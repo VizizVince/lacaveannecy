@@ -243,6 +243,15 @@ function cleanOCRText(text) {
   // Normaliser les sauts de ligne
   cleaned = cleaned.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
+  // ══════════════════════════════════════════════════════════════
+  // PRIX : Fusionner les séparateurs de milliers (espace français)
+  // "2 950 €" → "2950 €"  |  "12 500 €" → "12500 €"
+  // ══════════════════════════════════════════════════════════════
+  cleaned = cleaned.replace(/(\d{1,3})\s(\d{3}(?:[,\.]\d{1,2})?)\s*€/g, '$1$2 €');
+
+  // Gérer aussi les cas avec 2 espaces : "2  950 €"
+  cleaned = cleaned.replace(/(\d{1,3})\s{2,}(\d{3})\s*€/g, '$1$2 €');
+
   // Séparer les lignes qui contiennent plusieurs prix (OCR a fusionné des lignes)
   // Pattern: "Vin1 2020 45 € Vin2 2019 38 €" -> séparer avant le second vin
   cleaned = cleaned.replace(/(\d+\s*€)\s+([A-ZÀÂÄÉÈÊËÏÎÔÙÛÜÇ])/g, '$1\n$2');
