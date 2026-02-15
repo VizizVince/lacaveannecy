@@ -238,7 +238,7 @@ function extractTextFromPDF(file) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function cleanOCRText(text) {
-  let cleaned = text;
+  var cleaned = text;
 
   // Normaliser les sauts de ligne
   cleaned = cleaned.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -262,6 +262,36 @@ function cleanOCRText(text) {
 
   // Supprimer les lignes vides multiples
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+
+  // ══════════════════════════════════════════════════════════════
+  // PRIX ORPHELINS : Fusionner les lignes contenant uniquement un prix
+  // avec la ligne précédente (OCR a séparé le prix du vin)
+  // "Domaine XYZ 2020\n35 €" → "Domaine XYZ 2020 35 €"
+  // ══════════════════════════════════════════════════════════════
+  var lines = cleaned.split('\n');
+  var mergedLines = [];
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+
+    // Détecter une ligne qui contient UNIQUEMENT un prix (prix orphelin)
+    // Exemples: "35 €", "209 €", "1 250 €"
+    if (/^\d+(?:\s\d{3})*(?:[,\.]\d{1,2})?\s*€$/.test(line)) {
+      // C'est un prix orphelin - le fusionner avec la ligne précédente
+      if (mergedLines.length > 0) {
+        var prevLine = mergedLines[mergedLines.length - 1];
+        // Ne fusionner que si la ligne précédente n'a PAS déjà un prix
+        if (!prevLine.includes('€')) {
+          mergedLines[mergedLines.length - 1] = prevLine + ' ' + line;
+          continue;
+        }
+      }
+    }
+
+    mergedLines.push(line);
+  }
+
+  cleaned = mergedLines.join('\n');
 
   return cleaned;
 }
