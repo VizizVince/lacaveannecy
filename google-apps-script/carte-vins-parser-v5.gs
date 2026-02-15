@@ -245,12 +245,10 @@ function cleanOCRText(text) {
 
   // ══════════════════════════════════════════════════════════════
   // PRIX : Fusionner les séparateurs de milliers (espace français)
-  // "2 950 €" → "2950 €"  |  "12 500 €" → "12500 €"
+  // (?<!\d) empêche de capturer le dernier chiffre d'un millésime
+  // "2 950 €" → "2950 €"  MAIS  "2020 950 €" reste intact
   // ══════════════════════════════════════════════════════════════
-  cleaned = cleaned.replace(/(\d{1,3})\s(\d{3}(?:[,\.]\d{1,2})?)\s*€/g, '$1$2 €');
-
-  // Gérer aussi les cas avec 2 espaces : "2  950 €"
-  cleaned = cleaned.replace(/(\d{1,3})\s{2,}(\d{3})\s*€/g, '$1$2 €');
+  cleaned = cleaned.replace(/(?<!\d)(\d{1,3})\s(\d{3}(?:[,\.]\d{1,2})?)\s*€/g, '$1$2 €');
 
   // Séparer les lignes qui contiennent plusieurs prix (OCR a fusionné des lignes)
   // Pattern: "Vin1 2020 45 € Vin2 2019 38 €" -> séparer avant le second vin
@@ -273,10 +271,21 @@ function cleanOCRText(text) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function parseWineText(text) {
-  const wines = [];
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  var wines = [];
+  var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l.length > 0; });
 
-  let state = {
+  // ══════════════════════════════════════════════════════════════
+  // COMPTEUR DE SÉCURITÉ : Compter toutes les lignes avec prix
+  // ══════════════════════════════════════════════════════════════
+  var totalPriceLines = 0;
+  for (var j = 0; j < lines.length; j++) {
+    if (/\d+\s*€/.test(lines[j]) && !shouldSkipLine(lines[j])) {
+      totalPriceLines++;
+    }
+  }
+  log('   📌 Lignes contenant un prix (€) : ' + totalPriceLines);
+
+  var state = {
     category: '',
     region: '',
     subRegion: '',
@@ -285,21 +294,21 @@ function parseWineText(text) {
     order: 10
   };
 
-  let skippedLines = [];
+  var skippedLines = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
 
     // Ignorer les lignes non pertinentes
     if (shouldSkipLine(line)) {
       continue;
     }
 
-    const upperLine = line.toUpperCase().trim();
-    const normalizedUpper = normalizeText(upperLine);
+    var upperLine = line.toUpperCase().trim();
+    var normalizedUpper = normalizeText(upperLine);
 
     // 1. Détecter catégorie principale
-    const cat = detectCategory(normalizedUpper);
+    var cat = detectCategory(normalizedUpper);
     if (cat) {
       state.category = cat;
       state.region = '';
@@ -310,14 +319,14 @@ function parseWineText(text) {
     }
 
     // 2. Détecter format bouteille
-    const format = detectFormat(normalizedUpper);
+    var format = detectFormat(normalizedUpper);
     if (format) {
       state.format = format;
       continue;
     }
 
     // 3. Détecter région
-    const region = detectRegion(upperLine, line);
+    var region = detectRegion(upperLine, line);
     if (region) {
       if (isMainRegion(region)) {
         state.region = region;
@@ -336,22 +345,30 @@ function parseWineText(text) {
     }
 
     // 5. Parser ligne de vin (doit contenir un prix)
-    const wine = parseWineLine(line, state);
+    var wine = parseWineLine(line, state);
     if (wine) {
       wines.push(wine);
       state.order++;
-    } else if (CONFIG.DEBUG_MODE && line.includes('€')) {
+    } else if (line.includes('€')) {
       // Ligne avec prix mais non parsée
       skippedLines.push(line);
     }
   }
 
-  // Log des lignes ignorées en mode debug
-  if (CONFIG.DEBUG_MODE && skippedLines.length > 0) {
-    log('\n⚠️ Lignes avec prix non parsées (' + skippedLines.length + '):');
-    skippedLines.slice(0, CONFIG.DEBUG_MAX_SKIPPED).forEach((l, i) => {
-      log('   ' + (i + 1) + '. ' + l.substring(0, 80) + (l.length > 80 ? '...' : ''));
-    });
+  // ══════════════════════════════════════════════════════════════
+  // VÉRIFICATION : Comparer le compteur avec les résultats
+  // ══════════════════════════════════════════════════════════════
+  var parsedCount = wines.length;
+  var skippedCount = skippedLines.length;
+  log('   📌 Vins parsés : ' + parsedCount + ' / ' + totalPriceLines + ' lignes avec prix');
+  if (skippedCount > 0) {
+    log('   ⚠️ ' + skippedCount + ' lignes avec prix NON parsées :');
+    for (var k = 0; k < Math.min(skippedCount, CONFIG.DEBUG_MAX_SKIPPED); k++) {
+      log('      ' + (k + 1) + '. "' + skippedLines[k].substring(0, 90) + '"');
+    }
+  }
+  if (parsedCount + skippedCount < totalPriceLines) {
+    log('   🔴 ATTENTION : ' + (totalPriceLines - parsedCount - skippedCount) + ' lignes avec prix ont disparu pendant le parsing !');
   }
 
   return wines;
@@ -482,13 +499,16 @@ function isAppellation(line) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function parseWineLine(line, state) {
-  // Doit contenir un prix
-  // Regex améliorée pour les prix : gère "45€", "45 €", "45,50 €", "45.50€"
-  const priceRegex = /(\d+(?:[,\.]\d{1,2})?)\s*€/g;
-  const prices = [];
-  let match;
+  // Pré-traitement : fusionner les prix avec séparateur de milliers
+  // (?<!\d) empêche de casser les millésimes : "2020 950 €" reste intact
+  var processedLine = line.replace(/(?<!\d)(\d{1,3})\s(\d{3}(?:[,\.]\d{1,2})?)\s*€/g, '$1$2 €');
 
-  while ((match = priceRegex.exec(line)) !== null) {
+  // Regex pour les prix : gère "45€", "45 €", "45,50 €", "2950 €"
+  var priceRegex = /(\d+(?:[,\.]\d{1,2})?)\s*€/g;
+  var prices = [];
+  var match;
+
+  while ((match = priceRegex.exec(processedLine)) !== null) {
     prices.push({
       value: match[1].replace(',', '.'),
       index: match.index,
@@ -499,28 +519,28 @@ function parseWineLine(line, state) {
   if (prices.length === 0) return null;
 
   // Prendre le dernier prix (prix bouteille généralement à la fin)
-  const mainPrice = prices[prices.length - 1];
+  var mainPrice = prices[prices.length - 1];
 
   // Extraire la partie avant le prix
-  let winePart = line.substring(0, mainPrice.index).trim();
+  var winePart = processedLine.substring(0, mainPrice.index).trim();
 
   // Nettoyer les artefacts
   winePart = winePart.replace(/\s+/g, ' ').trim();
 
-  // Extraire le millésime (année ou NM)
-  let vintage = '';
-  const vintageMatch = winePart.match(/\s+((?:19|20)\d{2}|NM)\s*$/i);
+  // Extraire le millésime (année 4 chiffres ou NM en fin de chaîne)
+  var vintage = '';
+  var vintageMatch = winePart.match(/\s+((?:19|20)\d{2}|NM)\s*$/i);
   if (vintageMatch) {
     vintage = vintageMatch[1].toUpperCase() === 'NM' ? 'NM' : vintageMatch[1];
     winePart = winePart.substring(0, winePart.length - vintageMatch[0].length).trim();
   }
 
   // Parser domaine et nom
-  const parsed = parseWineParts(winePart);
+  var parsed = parseWineParts(winePart);
   if (!parsed.domaine && !parsed.nom) return null;
 
   // Construire la sous-catégorie
-  let sousCategorie = state.appellation || state.subRegion || state.region || '';
+  var sousCategorie = state.appellation || state.subRegion || state.region || '';
 
   return {
     categorie: state.category || '',
